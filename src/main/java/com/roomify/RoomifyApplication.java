@@ -31,6 +31,7 @@ public class RoomifyApplication {
         Environment env = app.run(args).getEnvironment();
 
         String port = env.getProperty("server.port");
+        String baseUrl = env.getProperty("api.base-url");
         String appName = env.getProperty("spring.application.name");
         try {
             LOG.info(
@@ -39,11 +40,12 @@ public class RoomifyApplication {
                             \t\
                             Application '{}' is running! Access URLs:
                             \t\
-                            Local: \t\thttp://localhost:{}
+                            Internal: \t\t{}:{}
                             \t\
                             External: \thttp://{}:{}
                             ----------------------------------------------------------""",
                     appName,
+                    baseUrl,
                     port,
                     InetAddress.getLocalHost().getHostAddress(),
                     port);
