@@ -40,7 +40,7 @@ public class RoomifyApplication {
                             \t\
                             Application '{}' is running! Access URLs:
                             \t\
-                            Internal: \t\t{}:{}
+                            Internal: \t{}:{}
                             \t\
                             External: \thttp://{}:{}
                             ----------------------------------------------------------""",
