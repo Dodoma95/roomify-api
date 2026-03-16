@@ -38,7 +38,10 @@ jobs:
       PGPASSWORD: postgres
       # JWT secret pour tests
       JWT_SECRET: testsecret
+      # Secret Sonar pour ce job
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      SONAR_ORG: ${{ secrets.SONAR_ORG }}
 
     steps:
       - name: Checkout repository
@@ -61,4 +64,4 @@ jobs:
         run: mvn clean package -DskipTests -B
 
       - name: Run SonarQube analysis
-        run: mvn sonar:sonar -B -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.organization=${{ secrets.SONAR_ORG }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        run: mvn sonar:sonar -B -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.organization=$SONAR_ORG -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN

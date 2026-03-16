@@ -134,7 +134,7 @@ public class AuthService implements AuthApi {
         );
     }
 
-    private User getUser(@NonNull LoginRequest request) throws UserNotFoundException {
+    private @NonNull User getUser(@NonNull LoginRequest request) throws UserNotFoundException {
         Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         normalizeEmail(request.email()),
@@ -174,7 +174,7 @@ public class AuthService implements AuthApi {
                         .build());
     }
 
-    private LoginResponse buildAuthResponse(@NonNull User user) {
+    private @NonNull LoginResponse buildAuthResponse(@NonNull User user) {
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
         return new LoginResponse(access, refresh);
