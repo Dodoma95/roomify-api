@@ -27,7 +27,7 @@ public class OpenApiConfiguration {
                         .description("Roomify backend API - Hexagonal Architecture")
                         .contact(new Contact()
                                 .name("Roomify Team")
-                                .email("contact@roomify.com")
+                                .email("roomify.dev@proton.me")
                         )
                 )
                 .components(new Components()
