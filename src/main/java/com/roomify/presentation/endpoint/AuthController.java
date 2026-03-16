@@ -2,8 +2,6 @@ package com.roomify.presentation.endpoint;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,13 +10,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.roomify.domain.api.AuthApi;
-import com.roomify.infrastucture.models.user.User;
 import com.roomify.presentation.models.in.LoginRequest;
 import com.roomify.presentation.models.in.ResendVerificationRequest;
 import com.roomify.presentation.models.out.LoginResponse;
 import com.roomify.presentation.models.in.RegisterRequest;
 import com.roomify.presentation.models.out.RegisterResponse;
-import com.roomify.presentation.models.out.UserResponse;
 import com.roomify.shared.exception.ClientApiException;
 import com.roomify.shared.exception.mail.InvalidTokenException;
 import com.roomify.shared.exception.mail.TokenNotFoundException;
@@ -33,7 +29,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -204,56 +199,6 @@ public class AuthController {
         } catch (AccountAlreadyVerifiedException e) {
             throw ClientApiException.ofBadRequest(e.getMessage(), e);
         }
-    }
-
-    @Operation(
-            summary = "Get current authenticated user",
-            description = "Returns information about the currently authenticated user",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Authenticated user information successfully retrieved",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = UserResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized - Missing or invalid JWT token",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Forbidden - Insufficient permissions",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Too many requests",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content
-            )
-    })
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(Authentication authentication) {
-        // TODO j'en suis la
-        User user = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(
-                new UserResponse(
-                        user.getEmail(),
-                        user.getAuthorities()
-                                .stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .toList()
-                )
-        );
     }
 
 }

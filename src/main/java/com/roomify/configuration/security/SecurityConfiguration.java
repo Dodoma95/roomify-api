@@ -15,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.roomify.infrastucture.service.CustomUserDetailsService;
+import com.roomify.infrastucture.adapter.CustomUserDetailsAdapter;
 
 @Configuration
 @EnableWebSecurity
@@ -32,9 +32,9 @@ public class SecurityConfiguration {
     };
 
     private final JwtAuthenticationFilter jwtFilter;
-    private final CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsAdapter userDetailsService;
 
-    public SecurityConfiguration(JwtAuthenticationFilter jwtFilter, CustomUserDetailsService userDetailsService) {
+    public SecurityConfiguration(JwtAuthenticationFilter jwtFilter, CustomUserDetailsAdapter userDetailsService) {
         this.jwtFilter = jwtFilter;
         this.userDetailsService = userDetailsService;
     }

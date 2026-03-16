@@ -10,7 +10,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.roomify.infrastucture.service.CustomUserDetailsService;
+import com.roomify.infrastucture.adapter.CustomUserDetailsAdapter;
 import com.roomify.infrastucture.service.JwtService;
 
 import jakarta.servlet.FilterChain;
@@ -25,9 +25,9 @@ import static java.util.Objects.nonNull;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsAdapter userDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsAdapter userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
