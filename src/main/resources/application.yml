@@ -2,16 +2,15 @@ api:
   version: "@project.version@"
   #base-url: http://localhost:8080 todo a revoir en prod
   endpoints:
-    #auth: /auth
     verify-user-path: /api/v1/auth/verify
 
 spring:
   application:
     name: "@project.artifactId@"
   datasource:
-    url: jdbc:postgresql://postgres:5432/roomify
-    username: roomify
-    password: roomify
+    url: ${DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -64,6 +63,10 @@ resilience4j:
         limitForPeriod: 20
         limitRefreshPeriod: 60s
         timeoutDuration: 0
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
 
 server:
   port: 8080

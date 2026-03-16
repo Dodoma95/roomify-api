@@ -4,6 +4,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,8 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private final String SECRET = "very_secret_key_for_roomify_change_this";
+    @Value("${security.jwt.secret}")
+    private String SECRET;
 
     public String generateAccessToken(UserDetails user) {
         List<String> roles = user.getAuthorities()
