@@ -1,6 +1,6 @@
 api:
   version: "@project.version@"
-  #base-url: http://localhost:8080 todo a revoir en prod
+  base-url: ${API_BASE_URL}
   endpoints:
     verify-user-path: /api/v1/auth/verify
 
@@ -14,7 +14,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # todo certainement a revoir en production
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
