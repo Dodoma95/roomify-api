@@ -10,7 +10,6 @@ spring:
     locations: classpath:db/migration
     validate-on-migrate: true
     clean-disabled: true
-    schemas: roomify
 
 logging:
   level:

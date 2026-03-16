@@ -25,6 +25,8 @@ spring:
       enabled: true
   flyway:
     enabled: true
+    default-schema: roomify
+    schemas: roomify
     locations: classpath:db/migration
 
 springdoc:
