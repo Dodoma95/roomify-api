@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -47,35 +46,33 @@ public class AuthController {
             summary = "Register a new user",
             description = "Creates a new user account with USER role"
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "User successfully registered",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = RegisterResponse.class)
-                    )),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid request",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Request forbidden",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Resource not found",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Too many request",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content)
-    })
+    @ApiResponse(
+            responseCode = "201",
+            description = "User successfully registered",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RegisterResponse.class)
+            ))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "403",
+            description = "Request forbidden",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "404",
+            description = "Resource not found",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "429",
+            description = "Too many request",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content)
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody @Valid RegisterRequest request) {
         try {
@@ -91,39 +88,37 @@ public class AuthController {
             summary = "Login an existing user",
             description = "Login an existing user account with ANY role"
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "User successfully login",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = LoginResponse.class)
-                    )),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid request",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Request forbidden",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Resource not found",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Too many request",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content)
-    })
+    @ApiResponse(
+            responseCode = "200",
+            description = "User successfully login",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = LoginResponse.class)
+            ))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "403",
+            description = "Request forbidden",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "404",
+            description = "Resource not found",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "429",
+            description = "Too many request",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content)
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         try {
@@ -139,28 +134,26 @@ public class AuthController {
             summary = "Verify email token",
             description = "Activate a user account using verification token"
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "Account successfully verified",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid or expired token",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Token not found",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Token already used",
-                    content = @Content
-            )
-    })
+    @ApiResponse(
+            responseCode = "204",
+            description = "Account successfully verified",
+            content = @Content
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid or expired token",
+            content = @Content
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Token not found",
+            content = @Content
+    )
+    @ApiResponse(
+            responseCode = "409",
+            description = "Token already used",
+            content = @Content
+    )
     @GetMapping("/verify")
     public ResponseEntity<Void> verify(@RequestParam("token") String token) {
         try {
@@ -179,16 +172,14 @@ public class AuthController {
             summary = "Resend verification email",
             description = "Send a new verification email if account is not yet verified"
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "Verification email sent",
-                    content = @Content),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Account already verified",
-                    content = @Content)
-    })
+    @ApiResponse(
+            responseCode = "204",
+            description = "Verification email sent",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "400",
+            description = "Account already verified",
+            content = @Content)
     @PostMapping("/resend-verification")
     public ResponseEntity<Void> resendVerification(@RequestBody ResendVerificationRequest request) {
         try {
