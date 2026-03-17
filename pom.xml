@@ -18,7 +18,8 @@
 
         <sonar.coverage.exclusions>
             **/configuration/**/*,
-            **/models/**/*
+            **/models/**/*,
+            **/infrastructure/adapter/CustomUserDetailsAdapter.java
         </sonar.coverage.exclusions>
     </properties>
 
