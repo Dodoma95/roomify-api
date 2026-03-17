@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AuthControllerIT extends AbstractIntegrationTest {
+class AuthRegisterControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

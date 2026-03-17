@@ -10,7 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.roomify.domain.models.RoleEnum;
 import com.roomify.infrastucture.models.user.Role;
 
-import static com.roomify.integration.utils.CustomUserUtils.createCustomUserDetails;
+import static com.roomify.integration.utils.UserUtils.createCustomUserDetails;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

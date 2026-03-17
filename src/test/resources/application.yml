@@ -31,6 +31,7 @@ spring:
     default-schema: roomify
     schemas: roomify
     locations: classpath:db/migration
+    clean-disabled: true
 
 brevo:
   api-key: test
@@ -58,13 +59,13 @@ resilience4j:
         limitRefreshPeriod: 60s
         timeoutDuration: 0
       loginUserRateLimiter:
-        limitForPeriod: 5
+        limitForPeriod: 1
         limitRefreshPeriod: 60s
         timeoutDuration: 0
 
 security:
   jwt:
-    secret: test_secret
+    secret: my-super-secret-key-that-is-at-least-32-characters-long
 
 server:
   port: 8080
