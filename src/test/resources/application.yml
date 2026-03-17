@@ -1,0 +1,71 @@
+api:
+  version: "@project.version@"
+  base-url: http://fake.url/
+  endpoints:
+    verify-user-path: /api/v1/auth/verify
+  errors:
+    include-stacktrace: true
+
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/testdb
+    username: test
+    password: test
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: roomify
+  graphql:
+    graphiql:
+      enabled: true
+  flyway:
+    enabled: true
+    default-schema: roomify
+    schemas: roomify
+    locations: classpath:db/migration
+
+brevo:
+  api-key: test
+  sender-email: roomify.dev@test.me
+  sender-name: Roomify
+  base-url: https://test.api.brevo.com/v3
+  brevo-smtp-path: /smtp/email
+
+resilience4j:
+  retry:
+    instances:
+      sendEmailRetry:
+        max-attempts: 3
+        wait-duration: 2s
+        retry-exceptions:
+          - com.roomify.shared.exception.TechniqueApiException
+          - java.io.IOException
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+        ignore-exceptions:
+          - com.roomify.shared.exception.ClientApiException
+  ratelimiter:
+    instances:
+      registerUserRateLimiter:
+        limitForPeriod: 1
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0
+      loginUserRateLimiter:
+        limitForPeriod: 5
+        limitRefreshPeriod: 60s
+        timeoutDuration: 0
+
+security:
+  jwt:
+    secret: test_secret
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
