@@ -4,9 +4,9 @@ import java.util.Set;
 
 import org.jspecify.annotations.NonNull;
 
-import com.roomify.infrastructure.models.user.CustomUserDetails;
-import com.roomify.infrastructure.models.user.Role;
-import com.roomify.infrastructure.models.user.User;
+import com.roomify.infrastucture.models.user.CustomUserDetails;
+import com.roomify.infrastucture.models.user.Role;
+import com.roomify.infrastucture.models.user.User;
 
 import lombok.experimental.UtilityClass;
 

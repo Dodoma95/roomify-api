@@ -1,4 +1,4 @@
-package com.roomify.infrastructure.adapter;
+package com.roomify.infrastucture.adapter;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -7,8 +7,8 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 
 import com.roomify.domain.spi.EmailVerificationSpi;
-import com.roomify.infrastructure.models.user.EmailVerificationToken;
-import com.roomify.infrastructure.repository.EmailVerificationRepository;
+import com.roomify.infrastucture.models.user.EmailVerificationToken;
+import com.roomify.infrastucture.repository.EmailVerificationRepository;
 
 import lombok.extern.slf4j.Slf4j;
 

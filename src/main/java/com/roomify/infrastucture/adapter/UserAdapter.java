@@ -1,4 +1,4 @@
-package com.roomify.infrastructure.adapter;
+package com.roomify.infrastucture.adapter;
 
 import java.util.Optional;
 
@@ -6,8 +6,8 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 
 import com.roomify.domain.spi.UserSpi;
-import com.roomify.infrastructure.models.user.User;
-import com.roomify.infrastructure.repository.UserRepository;
+import com.roomify.infrastucture.models.user.User;
+import com.roomify.infrastucture.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 

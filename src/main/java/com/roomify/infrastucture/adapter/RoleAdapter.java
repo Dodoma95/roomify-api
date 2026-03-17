@@ -1,4 +1,4 @@
-package com.roomify.infrastructure.adapter;
+package com.roomify.infrastucture.adapter;
 
 import java.util.Optional;
 
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.roomify.domain.models.RoleEnum;
 import com.roomify.domain.spi.RoleSpi;
-import com.roomify.infrastructure.models.user.Role;
-import com.roomify.infrastructure.repository.RoleRepository;
+import com.roomify.infrastucture.models.user.Role;
+import com.roomify.infrastucture.repository.RoleRepository;
 
 import lombok.extern.slf4j.Slf4j;
 

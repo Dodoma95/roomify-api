@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 
 import com.roomify.domain.models.RoleEnum;
-import com.roomify.infrastructure.models.user.Role;
+import com.roomify.infrastucture.models.user.Role;
 
 public interface RoleSpi {
 

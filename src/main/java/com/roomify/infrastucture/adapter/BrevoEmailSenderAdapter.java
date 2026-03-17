@@ -1,4 +1,4 @@
-package com.roomify.infrastructure.adapter;
+package com.roomify.infrastucture.adapter;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.roomify.configuration.brevo.BrevoProperties;
 import com.roomify.domain.spi.EmailSenderSpi;
-import com.roomify.infrastructure.models.brevo.BrevoErrorResponse;
+import com.roomify.infrastucture.models.brevo.BrevoErrorResponse;
 import com.roomify.shared.exception.ClientApiException;
 import com.roomify.shared.exception.TechniqueApiException;
 

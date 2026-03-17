@@ -1,4 +1,4 @@
-package com.roomify.infrastructure.adapter;
+package com.roomify.infrastucture.adapter;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -6,9 +6,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.roomify.infrastructure.models.user.CustomUserDetails;
-import com.roomify.infrastructure.models.user.User;
-import com.roomify.infrastructure.repository.UserRepository;
+import com.roomify.infrastucture.models.user.CustomUserDetails;
+import com.roomify.infrastucture.models.user.User;
+import com.roomify.infrastucture.repository.UserRepository;
 
 @Service
 public class CustomUserDetailsAdapter implements UserDetailsService {
