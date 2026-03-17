@@ -1,4 +1,4 @@
-package com.roomify.infrastucture.service;
+package com.roomify.infrastructure.service;
 
 import java.security.Key;
 import java.util.Date;

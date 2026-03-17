@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.roomify.infrastucture.models.user.CustomUserDetails;
-import com.roomify.infrastucture.models.user.User;
+import com.roomify.infrastructure.models.user.CustomUserDetails;
+import com.roomify.infrastructure.models.user.User;
 import com.roomify.presentation.models.out.UserResponse;
 
 import io.swagger.v3.oas.annotations.Operation;

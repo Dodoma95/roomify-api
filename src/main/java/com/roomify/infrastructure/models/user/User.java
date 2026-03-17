@@ -1,4 +1,4 @@
-package com.roomify.infrastucture.models.user;
+package com.roomify.infrastructure.models.user;
 
 import java.util.Collection;
 import java.util.Set;

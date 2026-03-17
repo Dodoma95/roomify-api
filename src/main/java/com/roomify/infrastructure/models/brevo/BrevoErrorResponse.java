@@ -1,4 +1,4 @@
-package com.roomify.infrastucture.models.brevo;
+package com.roomify.infrastructure.models.brevo;
 
 public record BrevoErrorResponse(
         String code,

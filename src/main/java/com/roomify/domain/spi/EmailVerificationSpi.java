@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 
-import com.roomify.infrastucture.models.user.EmailVerificationToken;
+import com.roomify.infrastructure.models.user.EmailVerificationToken;
 
 public interface EmailVerificationSpi {
 

@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.roomify.domain.models.RoleEnum;
-import com.roomify.infrastucture.models.user.Role;
+import com.roomify.infrastructure.models.user.Role;
 
 import static com.roomify.integration.utils.CustomUserUtils.createCustomUserDetails;
 import static org.hamcrest.Matchers.hasItem;

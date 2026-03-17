@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 
-import com.roomify.infrastucture.models.user.User;
+import com.roomify.infrastructure.models.user.User;
 
 public interface UserSpi {
 

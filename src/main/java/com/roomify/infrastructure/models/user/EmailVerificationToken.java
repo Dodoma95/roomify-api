@@ -1,4 +1,4 @@
-package com.roomify.infrastucture.models.user;
+package com.roomify.infrastructure.models.user;
 
 import java.time.LocalDateTime;
 

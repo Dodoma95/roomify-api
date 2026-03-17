@@ -1,4 +1,4 @@
-package com.roomify.infrastucture.repository;
+package com.roomify.infrastructure.repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import com.roomify.infrastucture.models.user.EmailVerificationToken;
+import com.roomify.infrastructure.models.user.EmailVerificationToken;
 
 public interface EmailVerificationRepository extends JpaRepository<EmailVerificationToken, Long> {
 
