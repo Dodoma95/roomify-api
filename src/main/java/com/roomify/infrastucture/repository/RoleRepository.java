@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import com.roomify.domain.models.RoleEnum;
 import com.roomify.infrastucture.models.user.Role;
-import com.roomify.infrastucture.models.user.User;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {

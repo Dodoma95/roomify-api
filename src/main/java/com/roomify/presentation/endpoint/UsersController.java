@@ -1,12 +1,13 @@
 package com.roomify.presentation.endpoint;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.roomify.infrastucture.models.user.CustomUserDetails;
 import com.roomify.infrastucture.models.user.User;
 import com.roomify.presentation.models.out.UserResponse;
 
@@ -56,12 +57,11 @@ public class UsersController {
             content = @Content
     )
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(Authentication authentication) {
-        // TODO j'en suis la
-        User user = (User) authentication.getPrincipal();
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal CustomUserDetails customUser) {
+        User user = customUser.user();
         return ResponseEntity.ok(
                 new UserResponse(
-                        user.getEmail(),
+                        user.getUsername(),
                         user.getAuthorities()
                                 .stream()
                                 .map(GrantedAuthority::getAuthority)

@@ -61,7 +61,7 @@ jobs:
         run: mvn verify -B
 
       - name: Package application
-        run: mvn clean package -DskipTests -B
+        run: mvn package -DskipTests -B
 
       - name: Run SonarQube analysis
         run: mvn sonar:sonar -B -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.organization=$SONAR_ORG -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN

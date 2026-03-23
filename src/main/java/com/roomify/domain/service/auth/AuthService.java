@@ -18,6 +18,7 @@ import com.roomify.domain.models.event.UserRegisteredEvent;
 import com.roomify.domain.spi.EmailVerificationSpi;
 import com.roomify.domain.spi.RoleSpi;
 import com.roomify.domain.spi.UserSpi;
+import com.roomify.infrastucture.models.user.CustomUserDetails;
 import com.roomify.infrastucture.models.user.EmailVerificationToken;
 import com.roomify.presentation.models.in.LoginRequest;
 import com.roomify.presentation.models.out.LoginResponse;
@@ -142,8 +143,11 @@ public class AuthService implements AuthApi {
                 )
         );
 
-        return (User) Optional.of(authenticate)
+        return Optional.of(authenticate)
                 .map(Authentication::getPrincipal)
+                .filter(CustomUserDetails.class::isInstance)
+                .map(CustomUserDetails.class::cast)
+                .map(CustomUserDetails::user)
                 .orElseThrow(() -> UserNotFoundException.builder()
                         .message("User not found with email: " + normalizeEmail(request.email()))
                         .build());
