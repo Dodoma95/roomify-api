@@ -1,12 +1,12 @@
 -- Création d'un user de test
-INSERT INTO roomify.users (id, email, password, enabled, email_verified)
-VALUES (
-           nextval('roomify.user_seq'),
-           'test.user@gmail.com',
-           '{bcrypt}Test@12345678941',
-           false,
-           false
-       )
+INSERT INTO roomify.users (id, email, first_name, last_name, password, enabled, email_verified)
+VALUES (99999999998,
+        'test.user@gmail.com',
+        'Test',
+        'User',
+        '{bcrypt}Test@12345678941',
+        false,
+        false)
 ON CONFLICT (email) DO NOTHING;
 
 -- Attribution du rôle USER
@@ -17,9 +17,11 @@ FROM roomify.users u
 WHERE u.email = 'test.user@gmail.com'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO roomify.users (id, email, password, enabled, email_verified)
-VALUES (nextval('roomify.user_seq'),
+INSERT INTO roomify.users (id, email, first_name, last_name, password, enabled, email_verified)
+VALUES (99999999999,
         'test.admin@gmail.com',
+        'Test',
+        'Admin',
         '{bcrypt}Test@12345678941',
         true,
         true)

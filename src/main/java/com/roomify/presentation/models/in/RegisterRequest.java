@@ -8,9 +8,32 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-// Todo à rajouter autres informations users
 @Schema(name = "RegisterRequest", description = "Request payload to register a new user")
 public record RegisterRequest(
+        @Schema(
+                description = "User first name",
+                example = "John",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
+        @Size(min = 2, max = 100)
+        @Pattern(
+                regexp = "^[\\p{L}]+([ '-][\\p{L}]+)*$",
+                message = "Invalid first name"
+        )
+        @NonNull String firstName,
+
+        @Schema(
+                description = "User last name",
+                example = "Doe",
+                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
+        @Size(min = 2, max = 100)
+        @Pattern(
+                regexp = "^[\\p{L}]+([ '-][\\p{L}]+)*$",
+                message = "Invalid last name"
+        )
+        @NonNull String lastName,
+
         @Schema(
                 description = "User email address",
                 example = "user@example.com",

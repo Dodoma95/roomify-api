@@ -1,6 +1,8 @@
-INSERT INTO roomify.users (id, email, password, enabled, email_verified)
+INSERT INTO roomify.users (id, email, first_name, last_name, password, enabled, email_verified)
 VALUES (nextval('roomify.user_seq'),
         'super.admin@gmail.com',
+        'Super',
+        'Admin',
         '{bcrypt}$2a$10$egycV/MNatN0H3hx3NnxEe0nx45IrBKGVESSU1c9.O0BqkKawhGFS',
         true,
         true)

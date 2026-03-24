@@ -12,13 +12,14 @@ import com.roomify.shared.exception.user.AccountAlreadyVerifiedException;
 import com.roomify.shared.exception.user.AccountNotVerifiedException;
 import com.roomify.shared.exception.user.EmailAlreadyExistsException;
 import com.roomify.shared.exception.user.RoleNotFoundException;
+import com.roomify.shared.exception.user.UserActionForbiddenException;
 import com.roomify.shared.exception.user.UserNotFoundException;
 
 public interface AuthApi {
 
     RegisterResponse register(@NonNull RegisterRequest request) throws RoleNotFoundException, EmailAlreadyExistsException;
 
-    LoginResponse login(@NonNull LoginRequest request) throws UserNotFoundException, AccountNotVerifiedException;
+    LoginResponse login(@NonNull LoginRequest request) throws UserNotFoundException, AccountNotVerifiedException, UserActionForbiddenException;
 
     void verify(@NonNull String token) throws InvalidTokenException, TokenNotFoundException, AccountAlreadyVerifiedException;
 
