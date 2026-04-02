@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.roomify</groupId>
     <artifactId>roomify-v1</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <name>roomify-api</name>
     <description>Roomify microservice - Spring Boot - REST et GraphQL API</description>
 
