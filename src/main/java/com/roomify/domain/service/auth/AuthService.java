@@ -33,6 +33,7 @@ import com.roomify.shared.exception.user.AccountAlreadyVerifiedException;
 import com.roomify.shared.exception.user.AccountNotVerifiedException;
 import com.roomify.shared.exception.user.EmailAlreadyExistsException;
 import com.roomify.shared.exception.user.RoleNotFoundException;
+import com.roomify.shared.exception.user.UserActionForbiddenException;
 import com.roomify.shared.exception.user.UserNotFoundException;
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -40,8 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import static com.roomify.domain.models.RoleEnum.USER;
 import static com.roomify.shared.utils.UtilsRequest.normalizeEmail;
+import static com.roomify.shared.utils.UtilsRequest.normalizeName;
 import static com.roomify.shared.utils.VerificationToken.generate;
 import static com.roomify.shared.utils.VerificationToken.sha256;
+import static java.util.Objects.nonNull;
 
 @Service
 @Slf4j
@@ -80,8 +83,10 @@ public class AuthService implements AuthApi {
     @Transactional(readOnly = true)
     @Override
     @RateLimiter(name = "loginUserRateLimiter")
-    public LoginResponse login(@NonNull LoginRequest request) throws UserNotFoundException, AccountNotVerifiedException {
+    public LoginResponse login(@NonNull LoginRequest request) throws UserNotFoundException, AccountNotVerifiedException,
+            UserActionForbiddenException {
         User user = getUser(request);
+        controlUserNotDeleted(user);
         controlVerifiedEmail(user);
         return buildAuthResponse(user);
     }
@@ -155,6 +160,8 @@ public class AuthService implements AuthApi {
 
     private User buildUser(@NonNull RegisterRequest request) throws RoleNotFoundException {
         return User.builder()
+                .firstName(normalizeName(request.firstName()))
+                .lastName(normalizeName(request.lastName()))
                 .email(normalizeEmail(request.email()))
                 .password(passwordEncoder.encode(request.password()))
                 .roles(Set.of(getUserRole()))
@@ -205,6 +212,14 @@ public class AuthService implements AuthApi {
         if (userSpi.alreadyExists(email)) {
             throw EmailAlreadyExistsException.builder()
                     .message("Invalid registration request")
+                    .build();
+        }
+    }
+
+    private void controlUserNotDeleted(@NonNull User user) throws UserActionForbiddenException {
+        if (nonNull(user.getDeletedAt())) {
+            throw UserActionForbiddenException.builder()
+                    .message("Please contact your administrator")
                     .build();
         }
     }

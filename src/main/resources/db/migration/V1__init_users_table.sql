@@ -25,21 +25,25 @@ CREATE TABLE roomify.users
 (
     id             BIGINT       NOT NULL,
     email          VARCHAR(255) NOT NULL,
+    first_name      VARCHAR(255) NOT NULL,
+    last_name       VARCHAR(255) NOT NULL,
     password       VARCHAR(255) NOT NULL,
     enabled        BOOLEAN      NOT NULL,
     email_verified BOOLEAN      NOT NULL,
+    deleted_at     TIMESTAMP,
+    deleted_by     BIGINT,
     CONSTRAINT pk_users PRIMARY KEY (id)
 );
 
 CREATE TABLE roomify.email_verification_tokens
 (
-    id          BIGINT       NOT NULL,
-    token       VARCHAR(255) NOT NULL,
-    user_id     BIGINT       NOT NULL,
-    expires_at  TIMESTAMP    NOT NULL,
+    id         BIGINT       NOT NULL,
+    token      VARCHAR(255) NOT NULL,
+    user_id    BIGINT       NOT NULL,
+    expires_at TIMESTAMP    NOT NULL,
     CONSTRAINT pk_email_verification_tokens PRIMARY KEY (id),
     CONSTRAINT fk_evt_user FOREIGN KEY (user_id)
-        REFERENCES roomify.users(id),
+        REFERENCES roomify.users (id),
     CONSTRAINT uc_evt_token UNIQUE (token)
 );
 

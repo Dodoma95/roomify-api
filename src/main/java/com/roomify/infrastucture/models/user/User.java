@@ -1,6 +1,8 @@
 package com.roomify.infrastucture.models.user;
 
+import java.time.Instant;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -8,6 +10,8 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.roomify.domain.models.RoleEnum;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,6 +30,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toSet;
 
 @Entity
 @Table(schema = "roomify", name = "users")
@@ -33,7 +38,7 @@ import static java.util.Objects.nonNull;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User implements UserDetails { // Todo se servir de username pour donner un nom?
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
@@ -43,6 +48,12 @@ public class User implements UserDetails { // Todo se servir de username pour do
             allocationSize = 50
     )
     private Long id;
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
 
     @Column(unique = true, nullable = false, updatable = false)
     private String email;
@@ -55,6 +66,12 @@ public class User implements UserDetails { // Todo se servir de username pour do
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "deleted_by")
+    private Long deletedBy;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -84,5 +101,14 @@ public class User implements UserDetails { // Todo se servir de username pour do
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public Set<RoleEnum> getRolesEnum() {
+        return Stream.ofNullable(roles)
+                .flatMap(Set::stream)
+                .filter(Objects::nonNull)
+                .map(Role::getName)
+                .filter(Objects::nonNull)
+                .collect(toSet());
     }
 }
