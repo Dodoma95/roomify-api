@@ -154,4 +154,40 @@ class UserControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void delete_user_by_id_cannot_delete_super_admin() throws Exception {
+        // GIVEN
+        var userCustom = createCustomUserDetails(
+                99999999999L,
+                "test.admin@gmail.com",
+                "Test",
+                "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN
+        mockMvc.perform(delete("/api/v1/users/1")
+                        .with(user(userCustom)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void delete_user_by_id_cannot_delete_user_not_found_then_404() throws Exception {
+        // GIVEN
+        var userCustom = createCustomUserDetails(
+                99999999999L,
+                "test.admin@gmail.com",
+                "Test",
+                "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN
+        mockMvc.perform(delete("/api/v1/users/5151515")
+                        .with(user(userCustom)))
+                .andExpect(status().isNotFound());
+    }
+
 }

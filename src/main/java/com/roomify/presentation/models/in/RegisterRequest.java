@@ -2,6 +2,8 @@ package com.roomify.presentation.models.in;
 
 import org.jspecify.annotations.NonNull;
 
+import com.roomify.shared.utils.ValidationPatterns;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,7 +19,7 @@ public record RegisterRequest(
         @NotBlank
         @Size(min = 2, max = 100)
         @Pattern(
-                regexp = "^[\\p{L}]+([ '-][\\p{L}]+)*$",
+                regexp = ValidationPatterns.NAME,
                 message = "Invalid first name"
         )
         @NonNull String firstName,
@@ -29,7 +31,7 @@ public record RegisterRequest(
         @NotBlank
         @Size(min = 2, max = 100)
         @Pattern(
-                regexp = "^[\\p{L}]+([ '-][\\p{L}]+)*$",
+                regexp = ValidationPatterns.NAME,
                 message = "Invalid last name"
         )
         @NonNull String lastName,
@@ -50,7 +52,7 @@ public record RegisterRequest(
         @NotBlank
         @Size(min = 12, max = 100)
         @Pattern(
-                regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).*$",
+                regexp = ValidationPatterns.PASSWORD,
                 message = "Password must contain upper, lower, digit and special character"
         )
         @NonNull String password
