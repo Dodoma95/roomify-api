@@ -55,7 +55,12 @@ class AuthLoginControllerIT extends AbstractIntegrationTest {
     @Test
     void login_nominal_returns200() throws Exception {
         String rawPassword = "Test@12345678941";
-        User user = createUser("login@test.com", Objects.requireNonNull(passwordEncoder.encode(rawPassword)), true, true);
+        User user = createUser("login@test.com",
+                "login",
+                "Test",
+                Objects.requireNonNull(passwordEncoder.encode(rawPassword)),
+                true,
+                true);
         userSpi.insertUser(user);
         var request = Map.of(
                 "email", "login@test.com",
@@ -92,7 +97,13 @@ class AuthLoginControllerIT extends AbstractIntegrationTest {
     @Test
     void login_emailNotVerified_returns403() throws Exception {
         String rawPassword = "P@ssword123";
-        User user = createUser("notverified@test.com", Objects.requireNonNull(passwordEncoder.encode(rawPassword)), true, false);
+        User user = createUser(
+                "notverified@test.com",
+                "NotVerified",
+                "Test",
+                Objects.requireNonNull(passwordEncoder.encode(rawPassword)),
+                true,
+                false);
         userSpi.insertUser(user);
         var request = Map.of(
                 "email", "notverified@test.com",

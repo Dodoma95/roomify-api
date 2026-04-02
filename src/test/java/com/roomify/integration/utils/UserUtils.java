@@ -16,11 +16,17 @@ import lombok.experimental.UtilityClass;
 public class UserUtils {
 
     public static CustomUserDetails createCustomUserDetails(
+            @NonNull Long id,
             @NonNull String email,
+            @NonNull String firstName,
+            @NonNull String lastName,
             @NonNull String password,
             @NonNull Set<Role> roles) {
         return new CustomUserDetails(User.builder()
+                .id(id)
                 .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
                 .password(password)
                 .roles(roles)
                 .build());
@@ -28,12 +34,16 @@ public class UserUtils {
 
     public static User createUser(
             @NonNull String email,
+            @NonNull String firstName,
+            @NonNull String lastName,
             @NonNull String password,
             boolean enabled,
             boolean emailVerified
     ) {
         return User.builder()
                 .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
                 .password(password)
                 .enabled(enabled)
                 .emailVerified(emailVerified)

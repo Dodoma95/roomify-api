@@ -22,6 +22,7 @@ import com.roomify.shared.exception.user.AccountAlreadyVerifiedException;
 import com.roomify.shared.exception.user.AccountNotVerifiedException;
 import com.roomify.shared.exception.user.EmailAlreadyExistsException;
 import com.roomify.shared.exception.user.RoleNotFoundException;
+import com.roomify.shared.exception.user.UserActionForbiddenException;
 import com.roomify.shared.exception.user.UserNotFoundException;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -125,7 +126,7 @@ public class AuthController {
             return ResponseEntity.ok(authApi.login(request));
         } catch (UserNotFoundException e) {
             throw ClientApiException.ofNotFound(e.getMessage(), e);
-        } catch (AccountNotVerifiedException e) {
+        } catch (AccountNotVerifiedException | UserActionForbiddenException e) {
             throw ClientApiException.ofForbidden(e.getMessage(), e);
         }
     }

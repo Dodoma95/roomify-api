@@ -58,6 +58,8 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
     @Test
     void register_nominal_returns201() throws Exception {
         var request = Map.of(
+                "firstName", "register",
+                "lastName", "nominal",
                 "email", "new.user@example.com",
                 "password", "P@ssword123567894"
         );
@@ -105,6 +107,8 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
     @Test
     void register_emailAlreadyExistsError() throws Exception {
         var request = Map.of(
+                "firstName", "email",
+                "lastName", "exists",
                 "email", "test.User@gmail.com",
                 "password", "Test@12345678941"
         );
@@ -121,6 +125,8 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
     @Test
     void register_rateLimiter_blocksTooManyRequest() throws Exception {
         var requestBody = Map.of(
+                "firstName", "toomany",
+                "lastName", "request",
                 "email", "new.user2@example.com",
                 "password", "P@ssword123567894"
         );

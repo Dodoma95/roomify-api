@@ -55,7 +55,12 @@ class AuthVerifyControllerIT extends AbstractIntegrationTest {
         String rawToken = "valid-token";
         String hashedToken = sha256(rawToken);
 
-        User user = createUser("verify.user@test.com", "password", false, false);
+        User user = createUser("verify.user@test.com",
+                "Verify",
+                "Test",
+                "password",
+                false,
+                false);
         userSpi.insertUser(user);
         EmailVerificationToken token = createEmailVerificationToken(hashedToken, user, LocalDateTime.now().plusMinutes(10));
         emailVerificationSpi.insertEmailVerification(token);
@@ -81,7 +86,13 @@ class AuthVerifyControllerIT extends AbstractIntegrationTest {
         String rawToken = "expired-token";
         String hashedToken = sha256(rawToken);
 
-        User user = createUser("expired@test.com", "password", false, false);
+        User user = createUser(
+                "expired@test.com",
+                "Expired",
+                "Test",
+                "password",
+                false,
+                false);
         userSpi.insertUser(user);
         EmailVerificationToken token = createEmailVerificationToken(hashedToken, user, LocalDateTime.now().minusMinutes(1));
         emailVerificationSpi.insertEmailVerification(token);
@@ -111,7 +122,13 @@ class AuthVerifyControllerIT extends AbstractIntegrationTest {
         String rawToken = "already-used-token";
         String hashedToken = sha256(rawToken);
 
-        User user = createUser("already@test.com", "password", true, true);
+        User user = createUser(
+                "already@test.com",
+                "Already",
+                "Test",
+                "password",
+                true,
+                true);
         userSpi.insertUser(user);
         EmailVerificationToken token = createEmailVerificationToken(hashedToken, user, LocalDateTime.now().plusMinutes(10));
         emailVerificationSpi.insertEmailVerification(token);

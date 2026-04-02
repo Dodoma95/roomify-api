@@ -14,4 +14,6 @@ public interface UserSpi {
 
     Optional<User> findUserByEmail(@NonNull String email);
 
+    Optional<User> findUserById(@NonNull Long id);
+
 }
