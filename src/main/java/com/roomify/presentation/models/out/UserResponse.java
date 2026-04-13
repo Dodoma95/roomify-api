@@ -18,6 +18,18 @@ public record UserResponse(
         )
         @NonNull String email,
         @Schema(
+                description = "User first name",
+                example = "John",
+                requiredMode = Schema.RequiredMode.REQUIRED
+        )
+        @NonNull String firstName,
+        @Schema(
+                description = "User last name",
+                example = "Doe",
+                requiredMode = Schema.RequiredMode.REQUIRED
+        )
+        @NonNull String lastName,
+        @Schema(
                 description = "List of granted roles associated with the user",
                 example = "[\"ROLE_USER\", \"ROLE_ADMIN\"]",
                 requiredMode = Schema.RequiredMode.REQUIRED
