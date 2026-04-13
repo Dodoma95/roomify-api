@@ -130,7 +130,7 @@ public class AuthService implements AuthApi {
         processVerificationEmail(user);
     }
 
-    private void processVerificationEmail(@NonNull User user) {
+    public void processVerificationEmail(@NonNull User user) {
         String rawToken = generate();
         String hashedToken = sha256(rawToken);
         EmailVerificationToken tokenEntity = buildEmailVerification(hashedToken, user);
