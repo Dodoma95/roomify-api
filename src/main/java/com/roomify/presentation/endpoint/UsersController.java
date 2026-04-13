@@ -6,13 +6,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.roomify.domain.api.UserApi;
 import com.roomify.infrastucture.models.user.CustomUserDetails;
 import com.roomify.infrastucture.models.user.User;
+import com.roomify.presentation.models.in.UpdateMeRequest;
 import com.roomify.presentation.models.out.UserResponse;
 import com.roomify.shared.exception.ClientApiException;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
@@ -24,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @Tag(name = "Users", description = "Management users")
 @RestController
@@ -75,12 +79,46 @@ public class UsersController {
         return ResponseEntity.ok(
                 new UserResponse(
                         user.getUsername(),
+                        user.getFirstName(),
+                        user.getLastName(),
                         user.getAuthorities()
                                 .stream()
                                 .map(GrantedAuthority::getAuthority)
                                 .toList()
                 )
         );
+    }
+
+    @Operation(
+            summary = "Update current user",
+            description = "Partially updates the authenticated user",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "User successfully updated",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserResponse.class)
+            ))
+    @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content)
+    @ApiResponse(
+            responseCode = "404",
+            description = "User not found",
+            content = @Content)
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> updateMe(
+            @AuthenticationPrincipal CustomUserDetails customUser,
+            @RequestBody @Valid UpdateMeRequest request
+    ) {
+        try {
+            return ResponseEntity.ok(userApi.updateMe(customUser.user(), request));
+        } catch (UserNotFoundException e) {
+            throw ClientApiException.ofNotFound(e.getMessage(), e);
+        }
     }
 
     @Operation(
