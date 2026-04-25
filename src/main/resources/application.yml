@@ -57,7 +57,7 @@ resilience4j:
           - com.roomify.shared.exception.ClientApiException
   ratelimiter:
     instances:
-      registerUserRateLimiter:
+      creationalRateLimiter:
         limitForPeriod: 5
         limitRefreshPeriod: 60s
         timeoutDuration: 0

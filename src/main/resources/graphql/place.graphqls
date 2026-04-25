@@ -1,0 +1,212 @@
+type Query {
+    """
+    Recherche des espaces avec filtrage optionnel et pagination.
+
+    Tous les paramètres sont facultatifs. Par défaut, retourne la première page
+    de 20 résultats sans aucun filtre appliqué.
+
+    **Authentification requise** : Bearer JWT avec l'un des rôles USER, OWNER, ADMIN ou SUPER_ADMIN.
+
+    Exemple — espaces approuvés en salle de réunion, page 2 :
+    ```graphql
+    {
+      places(
+        filter: { types: [MEETING_ROOM], statuses: [APPROVED] }
+        pagination: { page: 1, pageSize: 10 }
+      ) {
+        results { id name pricePerHour owner { firstName email } }
+        pageInfo { totalElements totalPages hasNext }
+      }
+    }
+    ```
+    """
+    places(
+        "Critères de filtrage sur les attributs de l'espace. Tous les champs sont facultatifs et cumulables."
+        filter: PlaceFilterInput
+        "Paramètres de pagination. Défaut : page 0, taille 20. Taille maximale autorisée : 50."
+        pagination: PageInfoInput
+    ): PlacePage!
+}
+
+"""
+Critères de filtrage appliqués à la recherche d'espaces.
+
+Tous les champs sont facultatifs. Les filtres actifs sont combinés avec un AND logique.
+Les plages (capacité, prix) doivent être cohérentes : la valeur Min doit être ≤ la valeur Max.
+"""
+input PlaceFilterInput {
+    "Filtre sur le ou les types d'espace. Retourne les espaces correspondant à l'un des types listés."
+    types: [PlaceType!]
+
+    "Filtre sur le ou les statuts de validation. Retourne les espaces correspondant à l'un des statuts listés."
+    statuses: [PlaceStatus!]
+
+    "Filtre par correspondance partielle sur le nom (insensible à la casse)."
+    nameContains: String
+
+    "Filtre par identifiant du propriétaire. Retourne uniquement les espaces appartenant à cet utilisateur."
+    ownerId: ID
+
+    "Capacité minimale inclusive (nombre de personnes). Doit être ≤ capacityMax si les deux sont fournis."
+    capacityMin: Int
+
+    "Capacité maximale inclusive (nombre de personnes). Doit être ≥ capacityMin si les deux sont fournis."
+    capacityMax: Int
+
+    "Prix horaire minimum inclusif (en euros). Doit être ≤ pricePerHourMax si les deux sont fournis."
+    pricePerHourMin: Float
+
+    "Prix horaire maximum inclusif (en euros). Doit être ≥ pricePerHourMin si les deux sont fournis."
+    pricePerHourMax: Float
+}
+
+"""
+Paramètres de pagination pour la query `places`.
+
+La numérotation des pages commence à 0. Si ce champ est omis, les valeurs par défaut
+s'appliquent : page 0, taille 20. La taille maximale autorisée est 50.
+"""
+input PageInfoInput {
+    "Numéro de page (0-indexé). Défaut : 0."
+    page: Int
+
+    "Nombre de résultats par page. Défaut : 20. Maximum : 50."
+    pageSize: Int
+}
+
+"""
+Réponse paginée de la query `places`.
+
+Contient la liste des espaces correspondant aux critères (`results`) ainsi que
+les métadonnées de pagination (`pageInfo`) permettant de naviguer entre les pages.
+"""
+type PlacePage {
+    "Liste des espaces correspondant aux critères de recherche pour la page demandée."
+    results: [PlaceResponse!]!
+
+    "Métadonnées de pagination : position courante, totaux et indicateurs de navigation."
+    pageInfo: PageInfo!
+}
+
+"""
+Métadonnées de pagination retournées avec chaque résultat de recherche.
+
+Permet au client de construire une navigation entre pages sans recalculer les offsets.
+"""
+type PageInfo {
+    "Numéro de la page courante (0-indexé)."
+    page: Int!
+
+    "Nombre de résultats demandés par page."
+    pageSize: Int!
+
+    "Nombre total d'espaces correspondant aux critères, toutes pages confondues."
+    totalElements: Int!
+
+    "Nombre total de pages disponibles pour les critères et la taille de page actuels."
+    totalPages: Int!
+
+    "Indique s'il existe une page suivante."
+    hasNext: Boolean!
+
+    "Indique s'il existe une page précédente (false si page courante = 0)."
+    hasPrevious: Boolean!
+}
+
+"""
+Représentation d'un espace disponible à la réservation.
+
+Le champ `owner` est résolu à la demande : il suffit de l'inclure dans la sélection
+GraphQL pour récupérer les informations du propriétaire sans requête supplémentaire côté client.
+"""
+type PlaceResponse {
+    "Identifiant unique de l'espace."
+    id: ID!
+
+    "Nom de l'espace (normalisé : casse unifiée, espaces réduits)."
+    name: String!
+
+    "Description détaillée de l'espace. Null si non renseignée."
+    description: String
+
+    "Type de l'espace (voir enum PlaceType)."
+    type: String!
+
+    "Adresse postale complète telle que saisie par le propriétaire."
+    address: String!
+
+    "Capacité maximale en nombre de personnes. Null si non renseignée."
+    capacity: Int
+
+    "Prix de location à l'heure en euros. Null si non renseigné."
+    pricePerHour: Float
+
+    "Statut de validation de l'espace par l'administration (voir enum PlaceStatus)."
+    status: String!
+
+    """
+    Informations sur le propriétaire de l'espace.
+
+    Null si le champ n'est pas demandé dans la sélection, ou si l'espace n'a pas de propriétaire associé.
+    Inclure ce champ déclenche la résolution du propriétaire depuis la base de données.
+    """
+    owner: OwnerInfo
+}
+
+"""
+Informations publiques sur le propriétaire d'un espace.
+
+Exposées uniquement dans le contexte d'une recherche d'espaces. Le mot de passe
+et les informations sensibles ne sont jamais inclus.
+"""
+type OwnerInfo {
+    "Identifiant unique du propriétaire."
+    id: ID!
+
+    "Prénom du propriétaire."
+    firstName: String!
+
+    "Nom de famille du propriétaire."
+    lastName: String!
+
+    "Adresse email du propriétaire."
+    email: String!
+}
+
+"""
+Type d'un espace disponible à la réservation.
+Détermine la catégorie et l'usage prévu de l'espace.
+"""
+enum PlaceType {
+    "Salle de réunion professionnelle."
+    MEETING_ROOM
+
+    "Espace de coworking partagé."
+    COWORKING_SPACE
+
+    "Salle dédiée aux événements (conférences, meetups, etc.)."
+    EVENT_SPACE
+
+    "Salle privée pour fêtes et événements personnels."
+    PARTY_ROOM
+
+    "Studio (photo, musique, podcast, etc.)."
+    STUDIO
+}
+
+"""
+Statut de validation d'un espace par l'équipe d'administration Roomify.
+
+Un espace nouvellement créé ou modifié passe automatiquement en PENDING.
+Seul un administrateur peut le faire passer à APPROVED ou REJECTED.
+"""
+enum PlaceStatus {
+    "En attente de validation par un administrateur."
+    PENDING
+
+    "Validé et visible par tous les utilisateurs."
+    APPROVED
+
+    "Refusé par un administrateur (non visible publiquement)."
+    REJECTED
+}
