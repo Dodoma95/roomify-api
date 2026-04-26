@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.roomify.domain.spi.EmailVerificationSpi;
@@ -40,17 +41,22 @@ class AuthVerifyControllerIT extends AbstractIntegrationTest {
     @BeforeEach
     void resetRateLimiter() {
         RateLimiterConfig config = rateLimiterRegistry
-                .rateLimiter("registerUserRateLimiter")
+                .rateLimiter("creationalRateLimiter")
                 .getRateLimiterConfig();
 
-        rateLimiterRegistry.remove("registerUserRateLimiter");
-        rateLimiterRegistry.rateLimiter("registerUserRateLimiter", config);
+        rateLimiterRegistry.remove("creationalRateLimiter");
+        rateLimiterRegistry.rateLimiter("creationalRateLimiter", config);
     }
 
     // =========================
     // ✅ NOMINAL
     // =========================
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'verify.user@test.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'verify.user@test.com')",
+            "DELETE FROM roomify.users WHERE email = 'verify.user@test.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void verify_nominal_returns204_and_enable_user() throws Exception {
         String rawToken = "valid-token";
         String hashedToken = sha256(rawToken);
@@ -82,6 +88,11 @@ class AuthVerifyControllerIT extends AbstractIntegrationTest {
     // ❌ TOKEN EXPIRED
     // =========================
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'expired@test.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'expired@test.com')",
+            "DELETE FROM roomify.users WHERE email = 'expired@test.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void verify_expiredToken_returns400() throws Exception {
         String rawToken = "expired-token";
         String hashedToken = sha256(rawToken);
@@ -118,6 +129,11 @@ class AuthVerifyControllerIT extends AbstractIntegrationTest {
     // ❌ ALREADY VERIFIED
     // =========================
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'already@test.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'already@test.com')",
+            "DELETE FROM roomify.users WHERE email = 'already@test.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void verify_alreadyVerified_returns409() throws Exception {
         String rawToken = "already-used-token";
         String hashedToken = sha256(rawToken);

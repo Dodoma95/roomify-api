@@ -24,6 +24,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Sql(statements = {
+        "DELETE FROM roomify.email_verification_tokens WHERE user_id IN (SELECT id FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998)",
+        "DELETE FROM roomify.user_roles WHERE user_id IN (SELECT id FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998)",
+        "DELETE FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class UserControllerIT extends AbstractIntegrationTest {
 
     @Autowired
@@ -249,6 +254,8 @@ class UserControllerIT extends AbstractIntegrationTest {
                     deleted_by = NULL
                 WHERE id = 99999999998;
             """, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(statements = "UPDATE roomify.users SET email = 'test.user@gmail.com' WHERE id = 99999999998",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void patch_me_emailChanged_resets_email_verified() throws Exception {
         // GIVEN
         var userCustom = createCustomUserDetails(
