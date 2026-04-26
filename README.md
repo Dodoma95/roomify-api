@@ -1,223 +1,309 @@
-# 🏠 Roomify API
+# Roomify API
 
-> A modern **secure backend API** built with **Spring Boot 3 / Java 21** featuring **JWT authentication, REST + GraphQL APIs, database migrations,
-CI/CD and code quality monitoring**.
+> Backend API for a space-rental platform — REST + GraphQL, stateless JWT auth, hexagonal architecture.
 
----
-
-# 🚀 Badges
-
+[![Build](https://github.com/Dodoma95/roomify-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Dodoma95/roomify-api/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=alert_status)](https://sonarcloud.io/project/overview?id=Dodoma95_roomify-api)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=coverage)](https://sonarcloud.io/project/overview?id=Dodoma95_roomify-api)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=security_rating)](https://sonarcloud.io/project/overview?id=Dodoma95_roomify-api)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=sqale_rating)](https://sonarcloud.io/project/overview?id=Dodoma95_roomify-api)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue)  
-![Build](https://github.com/Dodoma95/roomify-api/actions/workflows/ci.yml/badge.svg)
-![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=alert_status)
-![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=coverage)
-![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=security_rating)
-![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=Dodoma95_roomify-api&metric=sqale_rating)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ---
 
-# 📖 Overview
+## Overview
 
-**Roomify** is a modern backend API designed with **clean architecture principles**.
+**Roomify** is a production-ready backend for a space-rental marketplace. Owners list rentable spaces (meeting rooms, coworking desks, studios, event spaces…); users discover and book them.
 
-It demonstrates how to build a **production-ready backend** using modern Java ecosystem tools:
+The API exposes two interfaces in parallel:
 
-- secure authentication
-- resilient API
-- automated CI/CD
-- database migrations
-- test isolation with containers
-- static code analysis
-
-The project exposes both:
-
-- **REST API**
-- **GraphQL API**
+| Interface | Base       | Explorer                                                                                                                              |
+|-----------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| REST      | `/api/v1/` | [Swagger UI](https://roomify-api-1ik6.onrender.com/swagger-ui/index.html)                                                     |
+| GraphQL   | `/graphql` | [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · [Voyager](https://roomify-api-1ik6.onrender.com/voyager) |
 
 ---
 
-# 🧰 Tech Stack
+## Tech Stack
 
-| Layer             | Technology            |
-|-------------------|-----------------------|
-| Backend           | Java 21               |
-| Framework         | Spring Boot 4.0.2     |
-| Security          | Spring Security + JWT |
-| Database          | PostgreSQL            |
-| Migration         | Flyway                |
-| Resilience        | Resilience4j          |
-| Testing           | JUnit 5               |
-| Integration Tests | Testcontainers        |
-| CI/CD             | GitHub Actions        |
-| Code Quality      | SonarCloud            |
-| API               | REST + GraphQL        |
-
----
-
-# 📡 API Endpoints
-
-### Swagger UI
-
-[SWAGGER-UI](https://roomify-api-production.up.railway.app/swagger-ui/index.html)
+| Concern      | Choice                                  |
+|--------------|-----------------------------------------|
+| Language     | Java 21                                 |
+| Framework    | Spring Boot 4.0.2                       |
+| REST         | Spring MVC                              |
+| GraphQL      | Spring GraphQL                          |
+| Security     | Spring Security + JWT (jjwt 0.11.5)     |
+| Persistence  | Spring Data JPA / Hibernate             |
+| Database     | PostgreSQL 16                           |
+| Migrations   | Flyway                                  |
+| Mapping      | MapStruct 1.6.3                         |
+| Resilience   | Resilience4j (`@RateLimiter`, `@Retry`) |
+| Email        | Brevo HTTP API via WebClient            |
+| API Docs     | springdoc-openapi 3.0.1                 |
+| Testing      | JUnit 5 + Testcontainers                |
+| Code Quality | SonarCloud + JaCoCo                     |
+| CI/CD        | GitHub Actions                          |
+| Boilerplate  | Lombok                                  |
 
 ---
 
-# 🧱 Architecture
+## Architecture
 
-The project follows a **Clean / Hexagonal inspired architecture**.
+The project follows **hexagonal (clean) architecture**. The domain layer has zero dependency on Spring, JPA, or any framework.
 
-```text
-src
-├── presentation
-│   ├── rest
-│   └── graphql
+```
+com.roomify
+├── presentation/           # Delivery layer
+│   ├── endpoint/           # REST controllers
+│   ├── resolver/           # GraphQL resolvers
+│   └── models/
+│       ├── in/             # Request / input models (Bean Validation)
+│       └── out/            # Response / output models
 │
-├── domain
-│   ├── model
-│   ├── service
-│   └── exception
+├── domain/                 # Pure business logic
+│   ├── api/                # Interfaces consumed by the presentation layer
+│   ├── spi/                # Interfaces implemented by the infrastructure layer
+│   ├── service/            # Use-case implementations
+│   └── models/             # Domain models & enums
 │
-├── infrastructure
-│   ├── persistence
-│   ├── security
-│   └── configuration
+├── infrastucture/          # Adapters & framework wiring
+│   ├── adapter/            # SPI implementations (JPA, email…)
+│   ├── repository/         # Spring Data repositories
+│   ├── models/             # JPA entities
+│   └── filter/             # JWT filter
 │
-└── db
-    └── migration
+├── configuration/          # Spring beans (Security, OpenAPI, GraphQL…)
+└── shared/                 # Cross-cutting: exceptions, GlobalExceptionHandler, utils
 ```
 
-### Goals
+### Key patterns
 
-✔ isolate business logic  
-✔ decouple infrastructure  
-✔ improve testability
+- **SPI inversion** — domain services declare `*Spi` interfaces; infrastructure implements them. The domain never imports JPA.
+- **API inversion** — controllers inject `*Api` interfaces; `*Service` classes implement them.
+- **Event-driven email** — domain publishes `ApplicationEvent`; infrastructure listens and delegates to Brevo via WebClient, protected by `@Retry`.
 
 ---
 
-# 🔐 Authentication Flow
+## Authentication
 
-The API uses **stateless JWT authentication**.
+The API uses **stateless JWT authentication** with email verification.
 
-```text
-User
- │
- │ POST /api/v1/auth/register
- ▼
-Create account
- │
- │ GET /api/v1/auth/verify
- ▼
-Verify account
- │
- │ POST /api/v1/auth/login
- ▼
-JWT Token issued
- │
- │ Authorization: Bearer <token>
- ▼
-Access secured APIs
+```
+POST /api/v1/auth/register   →  account created (unverified)
+GET  /api/v1/auth/verify     →  email link clicked, account activated
+POST /api/v1/auth/login      →  returns Bearer JWT
+POST /api/v1/auth/resend-verification  →  resend verification email
 ```
 
-Security features:
+Every protected endpoint requires the header:
 
-- JWT authentication
-- email verification
-- rate limiting (Resilience4j)
-- stateless API
+```
+Authorization: Bearer <token>
+```
 
-sequenceDiagram
+### Roles
 
-Client->>API: POST /login
-API->>Database: Validate credentials
-Database-->>API: User
+| Role          | Description                               |
+|---------------|-------------------------------------------|
+| `USER`        | Standard authenticated user               |
+| `OWNER`       | Can list and manage their own spaces      |
+| `ADMIN`       | Can approve / reject spaces, manage users |
+| `SUPER_ADMIN` | Full access                               |
 
-API-->>Client: JWT Token
-
-Client->>API: Request with Authorization Bearer token
-API->>API: Validate token
-API-->>Client: Secured resource
+Rate limiting is enforced on write operations via Resilience4j.
 
 ---
 
-# 🗄 Database Schema
+## REST API
 
-Simplified schema:
+Full interactive documentation: [Swagger UI](https://roomify-api-1ik6.onrender.com/swagger-ui/index.html)
 
-users  
-roles  
-user_roles  
-verification_tokens  
-refresh_tokens
+### Auth — public endpoints
 
-Database migrations are handled by **Flyway**.
+| Method | Path                               | Description                 |
+|--------|------------------------------------|-----------------------------|
+| `POST` | `/api/v1/auth/register`            | Register a new account      |
+| `POST` | `/api/v1/auth/login`               | Obtain a JWT token          |
+| `GET`  | `/api/v1/auth/verify`              | Verify email via token link |
+| `POST` | `/api/v1/auth/resend-verification` | Resend verification email   |
 
-Location: `src/main/resources/db/migration`
+### Places — requires JWT
+
+| Method   | Path                  | Roles                                | Description    |
+|----------|-----------------------|--------------------------------------|----------------|
+| `POST`   | `/api/v1/places`      | OWNER, ADMIN, SUPER_ADMIN            | Create a space |
+| `GET`    | `/api/v1/places`      | All authenticated                    | List spaces    |
+| `PATCH`  | `/api/v1/places/{id}` | Owner of space · ADMIN · SUPER_ADMIN | Partial update |
+| `DELETE` | `/api/v1/places/{id}` | Owner of space · ADMIN · SUPER_ADMIN | Delete a space |
+
+### Users — requires JWT
+
+| Method | Path            | Roles              | Description    |
+|--------|-----------------|--------------------|----------------|
+| `GET`  | `/api/v1/users` | ADMIN, SUPER_ADMIN | List all users |
 
 ---
 
-# 🧪 Testing Strategy
+## GraphQL API
 
-The project contains two types of tests.
+Interactive schema explorer: [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · schema visualizer: [Voyager](https://roomify-api-1ik6.onrender.com/voyager)
 
-## Unit Tests
+### Query — `places`
 
-Run only the logic layer.
+Search spaces with optional filtering and pagination. All fields are optional and combined with logical AND.
+
+```graphql
+query {
+  places(
+    filter: {
+      types: [MEETING_ROOM, COWORKING_SPACE]
+      statuses: [APPROVED]
+      nameContains: "Paris"
+      capacityMin: 5
+      capacityMax: 20
+      pricePerHourMin: 10.0
+      pricePerHourMax: 80.0
+    }
+    pagination: { page: 0, pageSize: 10 }
+  ) {
+    results {
+      id
+      name
+      type
+      address
+      capacity
+      pricePerHour
+      status
+      owner {
+        firstName
+        lastName
+        email
+      }
+    }
+    pageInfo {
+      page
+      pageSize
+      totalElements
+      totalPages
+      hasNext
+      hasPrevious
+    }
+  }
+}
+```
+
+**Authentication required** — Bearer JWT with any role (`USER`, `OWNER`, `ADMIN`, `SUPER_ADMIN`).
+
+### Place types
+
+`MEETING_ROOM` · `COWORKING_SPACE` · `EVENT_SPACE` · `PARTY_ROOM` · `STUDIO`
+
+### Place statuses
+
+| Status     | Meaning                                     |
+|------------|---------------------------------------------|
+| `PENDING`  | Awaiting admin review (default on creation) |
+| `APPROVED` | Visible to all authenticated users          |
+| `REJECTED` | Refused by an admin                         |
+
+---
+
+## Database Schema
+
+Migrations are managed by **Flyway** (`src/main/resources/db/migration/`).
+
+```
+roomify.users
+roomify.roles
+roomify.user_roles
+roomify.verification_tokens
+roomify.places
+```
+
+```sql
+-- Key constraints on places
+UNIQUE (user_id, name, address)          -- no duplicate listing per owner
+FOREIGN KEY (user_id) REFERENCES users   -- ownership link
+INDEX on (type), (status), (user_id)     -- query performance
+```
+
+---
+
+## Running Locally
+
+### Prerequisites
+
+- Java 21
+- Maven 3.9+
+- Docker (for PostgreSQL and integration tests)
+
+### 1. Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+```
+
+### 2. Configure environment variables
+
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/roomify
+export SPRING_DATASOURCE_USERNAME=roomify
+export SPRING_DATASOURCE_PASSWORD=roomify
+export JWT_SECRET=<your-256-bit-secret>
+export BREVO_API_KEY=<your-brevo-key>
+export API_BASE_URL=http://localhost:8080
+```
+
+### 3. Start the application
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+The API starts on `http://localhost:8080`.
+
+| Tool       | URL                                         |
+|------------|---------------------------------------------|
+| Swagger UI | http://localhost:8080/swagger-ui/index.html |
+| GraphiQL   | http://localhost:8080/graphiql              |
+| Voyager    | http://localhost:8080/voyager               |
+
+---
+
+## Testing
+
+### Unit tests
 
 ```bash
 mvn test
 ```
 
-## Integration Tests
+### Integration tests
 
-Run against a **real PostgreSQL container**.
+Run against a **real PostgreSQL container** via Testcontainers (requires Docker).
 
 ```bash
 mvn verify
 ```
 
-Powered by **Testcontainers**.
-
-Benefits:
-
-✔ real database  
-✔ isolated environment  
-✔ reproducible CI builds
+All integration test classes extend `AbstractIntegrationTest`, which spins up a throwaway PostgreSQL container and binds the datasource dynamically. Tests are isolated — each class cleans its own data with `@Sql` scripts.
 
 ---
 
-# ⚙️ Running the Project Locally
+## CI/CD & Code Quality
 
-## 1️⃣ Environment Variables
+GitHub Actions runs on every push and pull request:
 
-Before starting the application, configure the following environment variables:
+1. Build & unit tests (`mvn test`)
+2. Integration tests (`mvn verify`)
+3. SonarCloud analysis (coverage, security rating, maintainability)
 
-```bash
-PGHOST=localhost
-PGPORT=5432
-PGDATABASE=roomify
-PGUSER=roomify
-PGPASSWORD=roomify
-```
+Quality gates and coverage reports are visible on [SonarCloud](https://sonarcloud.io/project/overview?id=Dodoma95_roomify-api).
 
-## 2️⃣ Start PostgreSQL 
+---
 
-Example using Docker:
+## License
 
-```bash
-docker compose up
-```
-
-## 3️⃣ Start the Application
-
-```bash
-mvn spring-boot:run
-```
-
-The API will start on:
-
-```text
-http://localhost:8080
-```
+MIT
