@@ -21,8 +21,8 @@ The API exposes two interfaces in parallel:
 
 | Interface | Base       | Explorer                                                                                                                              |
 |-----------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| REST      | `/api/v1/` | [Swagger UI](https://roomify-api-production.up.railway.app/swagger-ui/index.html)                                                     |
-| GraphQL   | `/graphql` | [GraphiQL](https://roomify-api-production.up.railway.app/graphiql) · [Voyager](https://roomify-api-production.up.railway.app/voyager) |
+| REST      | `/api/v1/` | [Swagger UI](https://roomify-api-1ik6.onrender.com/swagger-ui/index.html)                                                     |
+| GraphQL   | `/graphql` | [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · [Voyager](https://roomify-api-1ik6.onrender.com/voyager) |
 
 ---
 
@@ -118,7 +118,7 @@ Rate limiting is enforced on write operations via Resilience4j.
 
 ## REST API
 
-Full interactive documentation: [Swagger UI](https://roomify-api-production.up.railway.app/swagger-ui/index.html)
+Full interactive documentation: [Swagger UI](https://roomify-api-1ik6.onrender.com/swagger-ui/index.html)
 
 ### Auth — public endpoints
 
@@ -148,7 +148,7 @@ Full interactive documentation: [Swagger UI](https://roomify-api-production.up.r
 
 ## GraphQL API
 
-Interactive schema explorer: [GraphiQL](https://roomify-api-production.up.railway.app/graphiql) · schema visualizer: [Voyager](https://roomify-api-production.up.railway.app/voyager)
+Interactive schema explorer: [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · schema visualizer: [Voyager](https://roomify-api-1ik6.onrender.com/voyager)
 
 ### Query — `places`
 
