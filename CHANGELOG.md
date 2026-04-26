@@ -6,6 +6,10 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 ## [unreleased]
 
+## [1.1.0]
+
+- Ajout endpoints POST place, PATCH place, DELETE place et search places GraphQL
+
 ## [1.0.1]
 
 - Ajout endpoint PATCH user
@@ -14,7 +18,9 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 - Ajout endpoints DELETE user
 
-[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.0.1...develop
+[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.1.0...develop
+
+[1.1.0]: https://github.com/Dodoma95/roomify-api/compare/1.0.1...1.1.0
 
 [1.0.1]: https://github.com/Dodoma95/roomify-api/compare/1.0.0...1.0.1
 
