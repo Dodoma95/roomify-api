@@ -71,7 +71,7 @@ public class AuthService implements AuthApi {
 
     @Transactional
     @Override
-    @RateLimiter(name = "registerUserRateLimiter")
+    @RateLimiter(name = "creationalRateLimiter")
     public RegisterResponse register(@NonNull RegisterRequest request) throws RoleNotFoundException, EmailAlreadyExistsException {
         controlUniqueEmail(normalizeEmail(request.email()));
         User user = buildUser(request);
@@ -93,7 +93,7 @@ public class AuthService implements AuthApi {
 
     @Transactional
     @Override
-    @RateLimiter(name = "registerUserRateLimiter")
+    @RateLimiter(name = "creationalRateLimiter")
     public void verify(@NonNull String token)
             throws InvalidTokenException, TokenNotFoundException, AccountAlreadyVerifiedException {
         String hashed = sha256(token);
@@ -119,7 +119,7 @@ public class AuthService implements AuthApi {
 
     @Transactional
     @Override
-    @RateLimiter(name = "registerUserRateLimiter")
+    @RateLimiter(name = "creationalRateLimiter")
     public void resendVerification(@NonNull String email) throws UserNotFoundException, AccountAlreadyVerifiedException {
         String emailNormalized = normalizeEmail(email);
         User user = userSpi.findUserByEmail(emailNormalized)

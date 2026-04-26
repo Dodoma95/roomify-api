@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -45,17 +46,22 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
     void resetRateLimiter() {
         // récupère la config du RateLimiter existant
         RateLimiterConfig config = rateLimiterRegistry
-                .rateLimiter("registerUserRateLimiter")
+                .rateLimiter("creationalRateLimiter")
                 .getRateLimiterConfig();
 
         // supprime l’ancien RateLimiter
-        rateLimiterRegistry.remove("registerUserRateLimiter");
+        rateLimiterRegistry.remove("creationalRateLimiter");
 
         // recrée un nouveau RateLimiter avec la même config
-        rateLimiterRegistry.rateLimiter("registerUserRateLimiter", config);
+        rateLimiterRegistry.rateLimiter("creationalRateLimiter", config);
     }
 
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'new.user@example.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'new.user@example.com')",
+            "DELETE FROM roomify.users WHERE email = 'new.user@example.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void register_nominal_returns201() throws Exception {
         var request = Map.of(
                 "firstName", "register",
@@ -109,7 +115,7 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
         var request = Map.of(
                 "firstName", "email",
                 "lastName", "exists",
-                "email", "test.User@gmail.com",
+                "email", "test.admin@gmail.com",
                 "password", "Test@12345678941"
         );
 
@@ -123,6 +129,11 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'new.user2@example.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'new.user2@example.com')",
+            "DELETE FROM roomify.users WHERE email = 'new.user2@example.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void register_rateLimiter_blocksTooManyRequest() throws Exception {
         var requestBody = Map.of(
                 "firstName", "toomany",

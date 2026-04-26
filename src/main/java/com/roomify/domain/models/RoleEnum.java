@@ -2,6 +2,7 @@ package com.roomify.domain.models;
 
 public enum RoleEnum {
     USER,
+    OWNER,
     ADMIN,
     SUPER_ADMIN;
 

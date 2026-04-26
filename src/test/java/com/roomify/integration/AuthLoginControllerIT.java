@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -53,6 +54,11 @@ class AuthLoginControllerIT extends AbstractIntegrationTest {
     // ✅ NOMINAL
     // =========================
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'login@test.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'login@test.com')",
+            "DELETE FROM roomify.users WHERE email = 'login@test.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void login_nominal_returns200() throws Exception {
         String rawPassword = "Test@12345678941";
         User user = createUser("login@test.com",
@@ -95,6 +101,11 @@ class AuthLoginControllerIT extends AbstractIntegrationTest {
     // ❌ EMAIL NOT VERIFIED
     // =========================
     @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.email_verification_tokens WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'notverified@test.com')",
+            "DELETE FROM roomify.user_roles WHERE user_id = (SELECT id FROM roomify.users WHERE email = 'notverified@test.com')",
+            "DELETE FROM roomify.users WHERE email = 'notverified@test.com'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void login_emailNotVerified_returns403() throws Exception {
         String rawPassword = "P@ssword123";
         User user = createUser(

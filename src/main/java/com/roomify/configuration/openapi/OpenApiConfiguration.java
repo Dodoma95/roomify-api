@@ -6,14 +6,33 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.tags.Tag;
 
 @Configuration
 public class OpenApiConfiguration {
+
+    private static final String DESCRIPTION = """
+            API REST du backend Roomify — Architecture Hexagonale, Spring Boot 4, JWT stateless.
+
+            ---
+
+            ### Outils GraphQL
+
+            | Outil | Rôle |
+            |---|---|
+            | [**GraphiQL**](/graphiql) | IDE interactif : écrire et exécuter des requêtes GraphQL |
+            | [**Voyager**](/voyager) | Visualisation du schéma GraphQL sous forme de graphe |
+
+            > **Authentification** : toutes les routes (REST et GraphQL) requièrent un Bearer JWT,\
+             sauf les endpoints d'authentification publics listés ci-dessous.
+            > Utilisez le bouton **Authorize** pour renseigner votre token.
+            """;
 
     @Value("${api.version}")
     private String apiVersion;
@@ -22,13 +41,17 @@ public class OpenApiConfiguration {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Roomify API") // TOdo a custom
+                        .title("Roomify API")
                         .version(apiVersion)
-                        .description("Roomify backend API - Hexagonal Architecture")
+                        .description(DESCRIPTION)
                         .contact(new Contact()
                                 .name("Roomify Team")
                                 .email("roomify.dev@proton.me")
                         )
+                )
+                .externalDocs(new ExternalDocumentation()
+                        .description("Schéma GraphQL — Voyager")
+                        .url("/voyager")
                 )
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
@@ -54,6 +77,24 @@ public class OpenApiConfiguration {
         return GroupedOpenApi.builder()
                 .group("users")
                 .pathsToMatch("/api/v1/users/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi placeApi() {
+        return GroupedOpenApi.builder()
+                .group("places")
+                .pathsToMatch("/api/v1/places/**")
+                .addOpenApiCustomizer(openApi -> openApi
+                        .addTagsItem(new Tag()
+                                .name("GraphQL")
+                                .description("Les espaces sont également exposés via GraphQL — filtres avancés et pagination.")
+                                .externalDocs(new ExternalDocumentation()
+                                        .description("Ouvrir GraphiQL")
+                                        .url("/graphiql")
+                                )
+                        )
+                )
                 .build();
     }
 

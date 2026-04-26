@@ -9,12 +9,19 @@
     </parent>
     <groupId>com.roomify</groupId>
     <artifactId>roomify-v1</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>roomify-api</name>
     <description>Roomify microservice - Spring Boot - REST et GraphQL API</description>
 
     <properties>
         <java.version>21</java.version>
+        <org.mapstruct.version>1.6.3</org.mapstruct.version>
+        <springdoc.version>3.0.1</springdoc.version>
+        <jwt.api.version>0.11.5</jwt.api.version>
+        <jacoco.maven.version>0.8.12</jacoco.maven.version>
+        <sonar.maven.version>5.5.0.6356</sonar.maven.version>
+        <maven.phase.test.version>3.1.2</maven.phase.test.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 
         <sonar.coverage.exclusions>
             **/configuration/**/*,
@@ -51,6 +58,7 @@
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <!-- GraphQL -->
+        <!-- GraphQL Voyager (assets v1.3.0 vendored dans src/main/resources/static/voyager/) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-graphql</artifactId>
@@ -91,14 +99,14 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>3.0.1</version>
+            <version>${springdoc.version}</version>
         </dependency>
 
-        <!--<dependency>
+        <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
-        </dependency>-->
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -121,18 +129,18 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
+            <version>${jwt.api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
+            <version>${jwt.api.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
+            <version>${jwt.api.version}</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -168,6 +176,37 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <annotationProcessorPath>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${org.mapstruct.version}</version>
+                            </annotationProcessorPath>
+                            <annotationProcessorPath>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </annotationProcessorPath>
+                            <annotationProcessorPath>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </annotationProcessorPath>
+                        </annotationProcessorPaths>
+                        <compilerArgs>
+                            <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                            <arg>-Amapstruct.defaultInjectionStrategy=constructor</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -177,13 +216,13 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>5.5.0.6356</version>
+                <version>${sonar.maven.version}</version>
             </plugin>
 
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <version>${jacoco.maven.version}</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -209,7 +248,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>${maven.phase.test.version}</version>
                 <configuration>
                     <includes>
                         <include>**/*Test.java</include>
@@ -221,7 +260,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>${maven.phase.test.version}</version>
                 <executions>
                     <execution>
                         <goals>
