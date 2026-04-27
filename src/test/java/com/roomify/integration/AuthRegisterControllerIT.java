@@ -82,8 +82,8 @@ class AuthRegisterControllerIT extends AbstractIntegrationTest {
         // Vérifie que l'envoi du mail a été déclenché
         verify(emailSender, timeout(1000)).sendEmail(
                 eq("new.user@example.com"),
-                anyString(),
-                contains("Click")
+                eq("Confirmez votre compte Roomify"),
+                contains("Confirmer mon email")
         );
     }
 

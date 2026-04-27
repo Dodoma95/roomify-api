@@ -95,6 +95,9 @@ public class PlaceAdapter implements PlaceSpi {
         if (nonNull(filter.getPricePerHourMax())) {
             spec = spec.and(PlaceSpecifications.priceAtMost(filter.getPricePerHourMax()));
         }
+        if (nonNull(filter.getAvailableFrom()) && nonNull(filter.getAvailableTo())) {
+            spec = spec.and(PlaceSpecifications.isAvailableBetween(filter.getAvailableFrom(), filter.getAvailableTo()));
+        }
 
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getPageSize());
         return placeRepository.findAll(spec, pageable);

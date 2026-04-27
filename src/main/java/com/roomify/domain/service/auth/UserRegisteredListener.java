@@ -10,6 +10,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.roomify.domain.models.event.UserRegisteredEvent;
 import com.roomify.domain.spi.EmailSenderSpi;
+import com.roomify.shared.utils.EmailTemplateLoader;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
@@ -21,17 +22,22 @@ import static org.springframework.util.MultiValueMap.fromSingleValue;
 @Slf4j
 public class UserRegisteredListener {
 
+    private static final String TEMPLATE = "templates/email/user-registration.html";
+
     private final String baseUrl;
     private final String basePath;
     private final EmailSenderSpi emailSender;
+    private final EmailTemplateLoader templateLoader;
 
     public UserRegisteredListener(
             @Value("${api.base-url}") String baseUrl,
             @Value("${api.endpoints.verify-user-path}") String basePath,
-            EmailSenderSpi emailSender) {
+            EmailSenderSpi emailSender,
+            EmailTemplateLoader templateLoader) {
         this.baseUrl = baseUrl;
         this.basePath = basePath;
         this.emailSender = emailSender;
+        this.templateLoader = templateLoader;
     }
 
     @Async
@@ -40,14 +46,10 @@ public class UserRegisteredListener {
     public void handle(UserRegisteredEvent event) {
         log.info("Processing email verification for {}", event.email());
         String link = build(baseUrl, basePath, fromSingleValue(Map.of("token", event.token())));
-
-        // TODO revoir template du mail OU fabriquer template brevo
-        emailSender.sendEmail(
-                event.email(),
-                "Confirm your account",
-                "<h1>Welcome</h1>" +
-                "<p>Click <a href=\"" + link + "\">here</a></p>"
-        );
+        String html = templateLoader.load(TEMPLATE, Map.of(
+                "firstName", event.firstName(),
+                "verificationLink", link
+        ));
+        emailSender.sendEmail(event.email(), "Confirmez votre compte Roomify", html);
     }
-
 }

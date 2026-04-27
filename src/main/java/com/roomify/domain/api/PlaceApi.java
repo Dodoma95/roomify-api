@@ -1,5 +1,9 @@
 package com.roomify.domain.api;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+
 import org.jspecify.annotations.NonNull;
 
 import com.roomify.infrastucture.models.user.User;
@@ -7,6 +11,7 @@ import com.roomify.presentation.models.in.PageInfoInput;
 import com.roomify.presentation.models.in.PlaceFilterInput;
 import com.roomify.presentation.models.in.PlaceRequest;
 import com.roomify.presentation.models.in.UpdatePlaceRequest;
+import com.roomify.presentation.models.out.AvailableSlot;
 import com.roomify.presentation.models.out.PlacePage;
 import com.roomify.presentation.models.out.PlaceResponse;
 import com.roomify.shared.exception.place.CapacityIncoherenteException;
@@ -29,4 +34,7 @@ public interface PlaceApi {
 
     PlacePage searchPlaces(@NonNull PlaceFilterInput filter, @NonNull PageInfoInput pagination);
 
+    boolean isAvailableBetween(@NonNull Long placeId, @NonNull LocalDate from, @NonNull LocalDate to);
+
+    List<AvailableSlot> getAvailableSlots(@NonNull Long placeId, @NonNull YearMonth month) throws PlaceNotFoundException;
 }
