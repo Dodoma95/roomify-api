@@ -24,6 +24,8 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String MSG_ERROR_PROD = "Une erreur interne est survenue";
+
     @Value("${api.errors.include-stacktrace:false}")
     private boolean includeStackTrace;
 
@@ -33,7 +35,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         return ResponseEntity.status(ex.getStatusCode())
                 .body(new ApiErrorResponse(
-                        ex.getMessage(),
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
                         request.getRequestURI(),
                         ex.getStatusCode().value(),
                         LocalDateTime.now(),
@@ -48,7 +50,7 @@ public class GlobalExceptionHandler {
     ) {
         return ResponseEntity.status(UNAUTHORIZED)
                 .body(new ApiErrorResponse(
-                        ex.getMessage(),
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
                         request.getRequestURI(),
                         UNAUTHORIZED.value(),
                         LocalDateTime.now(),
@@ -63,7 +65,7 @@ public class GlobalExceptionHandler {
     ) {
         return ResponseEntity.status(FORBIDDEN)
                 .body(new ApiErrorResponse(
-                        ex.getMessage(),
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
                         request.getRequestURI(),
                         FORBIDDEN.value(),
                         LocalDateTime.now(),
@@ -77,7 +79,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         return ResponseEntity.status(TOO_MANY_REQUESTS)
                 .body(new ApiErrorResponse(
-                        ex.getMessage(),
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
                         request.getRequestURI(),
                         TOO_MANY_REQUESTS.value(),
                         LocalDateTime.now(),
@@ -89,7 +91,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleBindException(BindException ex, HttpServletRequest request) {
         return ResponseEntity.status(BAD_REQUEST)
                 .body(new ApiErrorResponse(
-                        ex.getMessage(),
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
                         request.getRequestURI(),
                         BAD_REQUEST.value(),
                         LocalDateTime.now(),
@@ -101,7 +103,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleException(Exception ex, HttpServletRequest request) {
         return ResponseEntity.status(INTERNAL_SERVER_ERROR.value())
                 .body(new ApiErrorResponse(
-                        ex.getMessage(),
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
                         request.getRequestURI(),
                         INTERNAL_SERVER_ERROR.value(),
                         LocalDateTime.now(),

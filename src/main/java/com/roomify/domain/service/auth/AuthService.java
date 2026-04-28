@@ -136,7 +136,7 @@ public class AuthService implements AuthApi {
         EmailVerificationToken tokenEntity = buildEmailVerification(hashedToken, user);
         emailVerificationSpi.insertEmailVerification(tokenEntity);
         eventPublisher.publishEvent(
-                new UserRegisteredEvent(user.getId(), user.getEmail(), rawToken)
+                new UserRegisteredEvent(user.getId(), user.getEmail(), user.getFirstName(), rawToken)
         );
     }
 

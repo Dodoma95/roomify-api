@@ -19,9 +19,9 @@
 
 The API exposes two interfaces in parallel:
 
-| Interface | Base       | Explorer                                                                                                                              |
-|-----------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| REST      | `/api/v1/` | [Swagger UI](https://roomify-api-1ik6.onrender.com/swagger-ui/index.html)                                                     |
+| Interface | Base       | Explorer                                                                                                              |
+|-----------|------------|-----------------------------------------------------------------------------------------------------------------------|
+| REST      | `/api/v1/` | [Swagger UI](https://roomify-api-1ik6.onrender.com/swagger-ui/index.html)                                             |
 | GraphQL   | `/graphql` | [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · [Voyager](https://roomify-api-1ik6.onrender.com/voyager) |
 
 ---
@@ -138,6 +138,39 @@ Full interactive documentation: [Swagger UI](https://roomify-api-1ik6.onrender.c
 | `PATCH`  | `/api/v1/places/{id}` | Owner of space · ADMIN · SUPER_ADMIN | Partial update |
 | `DELETE` | `/api/v1/places/{id}` | Owner of space · ADMIN · SUPER_ADMIN | Delete a space |
 
+### Bookings — requires JWT
+
+| Method  | Path                               | Roles                     | Description                             |
+|---------|------------------------------------|---------------------------|-----------------------------------------|
+| `POST`  | `/api/v1/bookings`                 | All authenticated         | Request a booking (status: PENDING)     |
+| `PATCH` | `/api/v1/bookings/{id}/confirm`    | OWNER, ADMIN, SUPER_ADMIN | Confirm a pending booking               |
+| `PATCH` | `/api/v1/bookings/{id}/cancel`     | All authenticated         | Cancel a booking                        |
+| `GET`   | `/api/v1/bookings/me`              | All authenticated         | List my bookings (filterable by status) |
+| `GET`   | `/api/v1/bookings/place/{placeId}` | OWNER, ADMIN, SUPER_ADMIN | List bookings for a place               |
+
+**Booking rules:**
+- The place must be `APPROVED`.
+- A user cannot book their own place.
+- Requested dates must not overlap any existing `PENDING` or `CONFIRMED` booking, nor any owner-blocked period.
+- Maximum booking window: **30 days**.
+- Dates cannot be in the past.
+
+**Booking lifecycle:** `PENDING` → `CONFIRMED` (by owner/admin) or `CANCELLED` (by renter or admin).
+
+### Place Unavailability — requires JWT
+
+Owners can manually block date ranges on their spaces, preventing any booking during that period.
+
+| Method   | Path                                            | Roles                     | Description                               |
+|----------|-------------------------------------------------|---------------------------|-------------------------------------------|
+| `GET`    | `/api/v1/places/{placeId}/unavailability`       | All authenticated         | List all unavailability periods           |
+| `POST`   | `/api/v1/places/{placeId}/unavailability/block` | OWNER, ADMIN, SUPER_ADMIN | Block a date range (`OWNER_BLOCKED`)      |
+| `DELETE` | `/api/v1/places/{placeId}/unavailability/{id}`  | OWNER, ADMIN, SUPER_ADMIN | Unblock a date range (owner-blocked only) |
+
+Unavailability entries are of two kinds:
+- **`BOOKING_CONFIRMED`** — created automatically when a booking is confirmed; removed when cancelled.
+- **`OWNER_BLOCKED`** — created manually; removed via the DELETE endpoint.
+
 ### Users — requires JWT
 
 | Method | Path            | Roles              | Description    |
@@ -149,6 +182,8 @@ Full interactive documentation: [Swagger UI](https://roomify-api-1ik6.onrender.c
 ## GraphQL API
 
 Interactive schema explorer: [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · schema visualizer: [Voyager](https://roomify-api-1ik6.onrender.com/voyager)
+
+A custom `Date` scalar (`YYYY-MM-DD`) is registered server-side and maps to `java.time.LocalDate`.
 
 ### Query — `places`
 
@@ -165,6 +200,8 @@ query {
       capacityMax: 20
       pricePerHourMin: 10.0
       pricePerHourMax: 80.0
+      availableFrom: "2030-06-01"   # Date scalar — YYYY-MM-DD
+      availableTo:   "2030-06-10"   # max 30 days window, not in the past
     }
     pagination: { page: 0, pageSize: 10 }
   ) {
@@ -181,6 +218,7 @@ query {
         lastName
         email
       }
+      isAvailableBetween(from: "2030-06-01", to: "2030-06-10")
     }
     pageInfo {
       page
@@ -194,7 +232,30 @@ query {
 }
 ```
 
-**Authentication required** — Bearer JWT with any role (`USER`, `OWNER`, `ADMIN`, `SUPER_ADMIN`).
+**Availability filter rules:**
+- `availableFrom` and `availableTo` must both be provided or both omitted.
+- `availableFrom` must not be in the past.
+- The window cannot exceed **30 days**.
+- Only spaces with no `PENDING` / `CONFIRMED` booking and no `OWNER_BLOCKED` period overlapping the requested range are returned.
+
+**`isAvailableBetween(from, to): Boolean`** — field-level resolver on `PlaceResponse`. Returns `false` if any active booking or unavailability overlaps the given period. Same validation rules as the search filter.
+
+### Query — `availableSlots`
+
+Returns the list of free date ranges for a given space within a calendar month.
+
+```graphql
+query {
+  availableSlots(placeId: "42", month: "2030-06") {
+    from   # Date scalar
+    to     # Date scalar
+  }
+}
+```
+
+Adjacent or overlapping unavailability periods are merged before computing the complement within the month. A fully free month returns a single slot covering the entire month.
+
+**Authentication required** — Bearer JWT with any role.
 
 ### Place types
 
@@ -220,13 +281,20 @@ roomify.roles
 roomify.user_roles
 roomify.verification_tokens
 roomify.places
+roomify.bookings
+roomify.place_unavailability
 ```
 
 ```sql
--- Key constraints on places
-UNIQUE (user_id, name, address)          -- no duplicate listing per owner
-FOREIGN KEY (user_id) REFERENCES users   -- ownership link
-INDEX on (type), (status), (user_id)     -- query performance
+-- bookings
+FOREIGN KEY (user_id)  REFERENCES users(id)
+FOREIGN KEY (place_id) REFERENCES places(id)
+INDEX on (place_id, status, start_date, end_date)   -- availability search
+
+-- place_unavailability
+FOREIGN KEY (place_id)   REFERENCES places(id)
+FOREIGN KEY (booking_id) REFERENCES bookings(id)    -- null for OWNER_BLOCKED entries
+INDEX on (place_id, start_date, end_date)           -- slot computation
 ```
 
 ---

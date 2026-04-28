@@ -26,10 +26,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Sql(
-        statements = "DELETE FROM roomify.places WHERE user_id IN (99999999998, 99999999999)",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
-)
+@Sql(statements = {
+        "DELETE FROM roomify.place_unavailability WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
+        "DELETE FROM roomify.bookings             WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
+        "DELETE FROM roomify.places               WHERE user_id IN (99999999998, 99999999999)"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class PlaceControllerIT extends AbstractIntegrationTest {
 
     private static final String ENDPOINT = "/api/v1/places";

@@ -98,4 +98,12 @@ public class OpenApiConfiguration {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi bookingApi() {
+        return GroupedOpenApi.builder()
+                .group("bookings")
+                .pathsToMatch("/api/v1/bookings/**")
+                .build();
+    }
+
 }

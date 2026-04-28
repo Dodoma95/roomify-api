@@ -1,6 +1,7 @@
 package com.roomify.domain.models;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -19,6 +20,8 @@ public class PlaceSearchFilter {
     @Nullable Integer capacityMax;
     @Nullable BigDecimal pricePerHourMin;
     @Nullable BigDecimal pricePerHourMax;
+    @Nullable LocalDate availableFrom;
+    @Nullable LocalDate availableTo;
     int page;
     int pageSize;
 }

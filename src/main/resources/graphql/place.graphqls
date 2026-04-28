@@ -1,3 +1,9 @@
+"""
+Scalar représentant une date au format ISO-8601 (YYYY-MM-DD).
+Mappé sur java.time.LocalDate côté serveur.
+"""
+scalar Date
+
 type Query {
     """
     Recherche des espaces avec filtrage optionnel et pagination.
@@ -7,11 +13,11 @@ type Query {
 
     **Authentification requise** : Bearer JWT avec l'un des rôles USER, OWNER, ADMIN ou SUPER_ADMIN.
 
-    Exemple — espaces approuvés en salle de réunion, page 2 :
+    Exemple — espaces approuvés en salle de réunion disponibles en juin 2030 :
     ```graphql
     {
       places(
-        filter: { types: [MEETING_ROOM], statuses: [APPROVED] }
+        filter: { types: [MEETING_ROOM], statuses: [APPROVED], availableFrom: "2030-06-01", availableTo: "2030-06-10" }
         pagination: { page: 1, pageSize: 10 }
       ) {
         results { id name pricePerHour owner { firstName email } }
@@ -26,13 +32,38 @@ type Query {
         "Paramètres de pagination. Défaut : page 0, taille 20. Taille maximale autorisée : 50."
         pagination: PageInfoInput
     ): PlacePage!
+
+    """
+    Retourne les créneaux de disponibilité d'un espace pour un mois donné.
+
+    Calcule les plages de dates libres (sans réservation active ni indisponibilité déclarée)
+    à l'intérieur du mois demandé.
+
+    **Authentification requise** : Bearer JWT avec l'un des rôles USER, OWNER, ADMIN ou SUPER_ADMIN.
+
+    Exemple — créneaux disponibles pour la place 42 en juin 2030 :
+    ```graphql
+    {
+      availableSlots(placeId: "42", month: "2030-06") {
+        from
+        to
+      }
+    }
+    ```
+    """
+    availableSlots(
+        "Identifiant de l'espace."
+        placeId: ID!
+        "Mois au format YYYY-MM (ex. : '2030-06')."
+        month: String!
+    ): [AvailableSlot!]!
 }
 
 """
 Critères de filtrage appliqués à la recherche d'espaces.
 
 Tous les champs sont facultatifs. Les filtres actifs sont combinés avec un AND logique.
-Les plages (capacité, prix) doivent être cohérentes : la valeur Min doit être ≤ la valeur Max.
+Les plages (capacité, prix, dates) doivent être cohérentes.
 """
 input PlaceFilterInput {
     "Filtre sur le ou les types d'espace. Retourne les espaces correspondant à l'un des types listés."
@@ -58,6 +89,23 @@ input PlaceFilterInput {
 
     "Prix horaire maximum inclusif (en euros). Doit être ≥ pricePerHourMin si les deux sont fournis."
     pricePerHourMax: Float
+
+    """
+    Date de début de disponibilité souhaitée (YYYY-MM-DD).
+
+    Doit être fournie avec `availableTo`. Ne peut pas être dans le passé.
+    La fenêtre [availableFrom, availableTo] est limitée à 30 jours.
+    Filtre les espaces sans réservation active (PENDING ou CONFIRMED) ni indisponibilité
+    chevauchant la période demandée.
+    """
+    availableFrom: Date
+
+    """
+    Date de fin de disponibilité souhaitée (YYYY-MM-DD).
+
+    Doit être fournie avec `availableFrom`. Doit être ≥ `availableFrom`.
+    """
+    availableTo: Date
 }
 
 """
@@ -118,6 +166,8 @@ Représentation d'un espace disponible à la réservation.
 
 Le champ `owner` est résolu à la demande : il suffit de l'inclure dans la sélection
 GraphQL pour récupérer les informations du propriétaire sans requête supplémentaire côté client.
+
+Le champ `isAvailableBetween` est calculé à la demande pour une période donnée.
 """
 type PlaceResponse {
     "Identifiant unique de l'espace."
@@ -151,6 +201,25 @@ type PlaceResponse {
     Inclure ce champ déclenche la résolution du propriétaire depuis la base de données.
     """
     owner: OwnerInfo
+
+    """
+    Indique si l'espace est disponible sur la période [from, to].
+
+    Retourne false si une réservation active (PENDING ou CONFIRMED) ou une indisponibilité
+    déclarée chevauche la période. Les règles de validation (from ≤ to, max 30 jours)
+    s'appliquent identiquement à celles du filtre de recherche.
+
+    Exemple :
+    ```graphql
+    { places { results { id name isAvailableBetween(from: "2030-06-01", to: "2030-06-10") } } }
+    ```
+    """
+    isAvailableBetween(
+        "Date de début (YYYY-MM-DD)."
+        from: Date!
+        "Date de fin (YYYY-MM-DD). Doit être ≥ from et à 30 jours au plus."
+        to: Date!
+    ): Boolean
 }
 
 """
@@ -171,6 +240,20 @@ type OwnerInfo {
 
     "Adresse email du propriétaire."
     email: String!
+}
+
+"""
+Créneau de disponibilité d'un espace.
+
+Représente une plage de dates consécutives pendant laquelle l'espace est libre
+(aucune réservation active ni indisponibilité déclarée).
+"""
+type AvailableSlot {
+    "Première date du créneau libre (incluse)."
+    from: Date!
+
+    "Dernière date du créneau libre (incluse)."
+    to: Date!
 }
 
 """

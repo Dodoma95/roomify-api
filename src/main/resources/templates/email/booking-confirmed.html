@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réservation confirmée — Roomify</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#059669,#10b981);padding:40px 48px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">Roomify</h1>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">Réservation confirmée ✓</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:48px;">
+              <!-- Success icon -->
+              <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+                <tr>
+                  <td style="background-color:#dcfce7;border-radius:50%;width:64px;height:64px;text-align:center;vertical-align:middle;">
+                    <span style="font-size:32px;line-height:64px;">✓</span>
+                  </td>
+                </tr>
+              </table>
+
+              <h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:600;text-align:center;">Bonne nouvelle, {{firstName}}&nbsp;!</h2>
+              <p style="margin:0 0 32px;color:#475569;font-size:16px;line-height:1.7;text-align:center;">
+                Votre réservation a été <strong style="color:#059669;">confirmée</strong> par le propriétaire. Retrouvez ci-dessous le récapitulatif.
+              </p>
+
+              <!-- Booking summary card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-bottom:32px;">
+                <tr>
+                  <td style="padding:24px 28px;">
+                    <p style="margin:0 0 6px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Lieu</p>
+                    <p style="margin:0 0 4px;color:#1e293b;font-size:18px;font-weight:700;">{{placeName}}</p>
+                    <p style="margin:0 0 20px;color:#64748b;font-size:13px;">{{placeAddress}}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 28px 24px;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="50%" style="padding-right:8px;">
+                          <div style="background:#ffffff;border:1px solid #bbf7d0;border-radius:8px;padding:14px 16px;">
+                            <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">Arrivée</p>
+                            <p style="margin:0;color:#1e293b;font-size:15px;font-weight:600;">{{startDate}}</p>
+                          </div>
+                        </td>
+                        <td width="50%" style="padding-left:8px;">
+                          <div style="background:#ffffff;border:1px solid #bbf7d0;border-radius:8px;padding:14px 16px;">
+                            <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">Départ</p>
+                            <p style="margin:0;color:#1e293b;font-size:15px;font-weight:600;">{{endDate}}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 28px 24px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:8px;">
+                      <tr>
+                        <td style="padding:14px 16px;">
+                          <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">Montant total</p>
+                          <p style="margin:0;color:#059669;font-size:20px;font-weight:700;">{{totalPrice}} €</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#94a3b8;font-size:14px;text-align:center;line-height:1.6;">
+                Profitez bien de votre séjour&nbsp;! Pour toute modification, rendez-vous dans votre espace Roomify.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f8fafc;padding:24px 48px;text-align:center;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
+                Cet email a été généré automatiquement par Roomify.<br />
+                Pour toute question, connectez-vous à votre espace personnel.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

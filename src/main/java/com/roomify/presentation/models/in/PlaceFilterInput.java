@@ -1,5 +1,6 @@
 package com.roomify.presentation.models.in;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.roomify.domain.models.PlaceStatusEnum;
@@ -22,4 +23,6 @@ public class PlaceFilterInput {
     private Integer capacityMax;
     private Double pricePerHourMin;
     private Double pricePerHourMax;
+    private LocalDate availableFrom;
+    private LocalDate availableTo;
 }
