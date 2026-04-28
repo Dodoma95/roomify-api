@@ -124,9 +124,7 @@ public class PlaceUnavailabilityController {
         try {
             placeUnavailabilityApi.unblockDates(placeId, unavailabilityId, currentUser.user());
             return ResponseEntity.noContent().build();
-        } catch (PlaceNotFoundException e) {
-            throw ClientApiException.ofNotFound(e.getMessage(), e);
-        } catch (PlaceUnavailabilityNotFoundException e) {
+        } catch (PlaceNotFoundException | PlaceUnavailabilityNotFoundException e) {
             throw ClientApiException.ofNotFound(e.getMessage(), e);
         } catch (UserActionForbiddenException e) {
             throw ClientApiException.ofForbidden(e.getMessage(), e);

@@ -14,7 +14,6 @@ import com.roomify.infrastucture.models.user.Role;
 
 import static com.roomify.integration.utils.UserUtils.createCustomUserDetails;
 import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -23,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("java:S5976") // Suppression du warning "replace with a single Parameterized one" non souhaité ici
 @Sql(statements = {
         "DELETE FROM roomify.place_unavailability WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
         "DELETE FROM roomify.bookings WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
@@ -35,9 +35,6 @@ class PlaceGraphQlIT extends AbstractIntegrationTest {
     // Dates fixes dans le futur — 2030-06 est toujours valide quel que soit le jour d'exécution
     private static final String FUTURE_FROM = "2030-06-01";
     private static final String FUTURE_TO   = "2030-06-10";  // 9 jours < 30 jours max
-    // Demain pour les tests "not in past"
-    private static final String TOMORROW = LocalDate.now().plusDays(1).toString();
-    private static final String IN_10_DAYS = LocalDate.now().plusDays(10).toString();
 
     @Autowired
     private MockMvc mockMvc;

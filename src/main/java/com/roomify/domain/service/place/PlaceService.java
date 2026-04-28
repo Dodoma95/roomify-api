@@ -81,6 +81,7 @@ public class PlaceService implements PlaceApi {
     @Transactional
     @Override
     @RateLimiter(name = "creationalRateLimiter")
+    @SuppressWarnings("java:S2637") // suppression du warning de nullabilité sur les champs de UpdatePlaceRequest, faux positif
     public PlaceResponse update(@NonNull Long id, @NonNull UpdatePlaceRequest request, @NonNull User currentUser)
             throws PlaceNotFoundException, UserActionForbiddenException, PlaceDuplicationException,
             CapacityIncoherenteException, PlaceDescriptionTooShortException {
@@ -209,20 +210,13 @@ public class PlaceService implements PlaceApi {
             List<PlaceUnavailability> sorted, LocalDate rangeStart, LocalDate rangeEnd) {
         List<PlaceUnavailability> merged = new ArrayList<>();
         for (PlaceUnavailability u : sorted) {
-            LocalDate blockStart = u.getStartDate().isBefore(rangeStart) ? rangeStart : u.getStartDate();
-            LocalDate blockEnd = u.getEndDate().isAfter(rangeEnd) ? rangeEnd : u.getEndDate();
+            LocalDate start = u.getStartDate().isBefore(rangeStart) ? rangeStart : u.getStartDate();
+            LocalDate end = u.getEndDate().isAfter(rangeEnd) ? rangeEnd : u.getEndDate();
 
-            if (merged.isEmpty()) {
-                merged.add(synthetic(blockStart, blockEnd));
-            } else {
-                PlaceUnavailability last = merged.get(merged.size() - 1);
-                if (!blockStart.isAfter(last.getEndDate().plusDays(1))) {
-                    if (blockEnd.isAfter(last.getEndDate())) {
-                        merged.set(merged.size() - 1, synthetic(last.getStartDate(), blockEnd));
-                    }
-                } else {
-                    merged.add(synthetic(blockStart, blockEnd));
-                }
+            if (merged.isEmpty() || start.isAfter(merged.getLast().getEndDate().plusDays(1))) {
+                merged.add(synthetic(start, end));
+            } else if (end.isAfter(merged.getLast().getEndDate())) {
+                merged.set(merged.size() - 1, synthetic(merged.getLast().getStartDate(), end));
             }
         }
         return merged;

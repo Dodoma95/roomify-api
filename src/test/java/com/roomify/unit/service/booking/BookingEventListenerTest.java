@@ -115,9 +115,9 @@ class BookingEventListenerTest {
         ));
 
         verify(emailSender).sendEmail(
-                eq("tenant@example.com"),
-                eq("Réservation confirmée — Roomify"),
-                eq("<html>confirmed</html>")
+                "tenant@example.com",
+                "Réservation confirmée — Roomify",
+                "<html>confirmed</html>"
         );
     }
 
@@ -152,9 +152,9 @@ class BookingEventListenerTest {
         ));
 
         verify(emailSender).sendEmail(
-                eq("tenant@example.com"),
-                eq("Réservation annulée — Roomify"),
-                eq("<html>cancelled</html>")
+                "tenant@example.com",
+                "Réservation annulée — Roomify",
+                "<html>cancelled</html>"
         );
     }
 

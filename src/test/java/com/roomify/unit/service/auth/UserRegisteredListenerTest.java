@@ -56,9 +56,9 @@ class UserRegisteredListenerTest {
         assertThat(vars.get("verificationLink")).contains("raw-token-abc");
 
         verify(emailSender).sendEmail(
-                eq("user@example.com"),
-                eq("Confirmez votre compte Roomify"),
-                eq("<html>Confirmer mon email</html>")
+                "user@example.com",
+                "Confirmez votre compte Roomify",
+                "<html>Confirmer mon email</html>"
         );
     }
 
