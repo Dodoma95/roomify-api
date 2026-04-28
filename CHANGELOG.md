@@ -6,6 +6,14 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 ## [unreleased]
 
+## [1.2.0]
+
+- Ajout endpoints de management des bookings et des indisponibilités des places.
+- Amélioration des events envoie de mail et templates
+- Amélioration de la documentation
+- Ajout d'un filtre sur les dates recherchées query graphql "places"
+- Ajout nouvelle query "availableSlots" pour retourner les disponibilités d'une place sur un mois donné
+
 ## [1.1.0]
 
 - Ajout endpoints POST place, PATCH place, DELETE place et search places GraphQL
@@ -18,7 +26,9 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 - Ajout endpoints DELETE user
 
-[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.1.0...develop
+[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.2.0...develop
+
+[1.2.0]: https://github.com/Dodoma95/roomify-api/compare/1.1.0...1.2.0
 
 [1.1.0]: https://github.com/Dodoma95/roomify-api/compare/1.0.1...1.1.0
 

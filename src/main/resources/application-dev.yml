@@ -7,6 +7,11 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: true
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 logging:
   level:
