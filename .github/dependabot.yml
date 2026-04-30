@@ -1,0 +1,45 @@
+version: 2
+
+updates:
+  # Dépendances Maven (pom.xml)
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    target-branch: "develop"
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "⬆️ deps"
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot:*"
+          - "org.springframework.cloud:*"
+      testcontainers:
+        patterns:
+          - "org.testcontainers:*"
+      springdoc:
+        patterns:
+          - "org.springdoc:*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    target-branch: "develop"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "⬆️ ci"
