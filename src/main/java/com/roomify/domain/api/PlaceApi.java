@@ -22,6 +22,8 @@ import com.roomify.shared.exception.user.UserActionForbiddenException;
 
 public interface PlaceApi {
 
+    PlaceResponse getById(@NonNull Long id) throws PlaceNotFoundException;
+
     PlaceResponse create(@NonNull PlaceRequest request, @NonNull User user)
             throws PlaceDuplicationException, CapacityIncoherenteException, PlaceDescriptionTooShortException;
 

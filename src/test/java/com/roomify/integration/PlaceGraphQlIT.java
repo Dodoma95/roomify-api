@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.roomify.domain.models.RoleEnum;
@@ -23,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SuppressWarnings("java:S5976") // Suppression du warning "replace with a single Parameterized one" non souhaité ici
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(statements = {
         "DELETE FROM roomify.place_unavailability WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
         "DELETE FROM roomify.bookings WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
@@ -274,6 +276,95 @@ class PlaceGraphQlIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.places.results[0].owner.lastName").value("User"))
                 .andExpect(jsonPath("$.data.places.results[0].owner.email").value("test.user@gmail.com"))
                 .andExpect(jsonPath("$.data.places.pageInfo.totalElements").value(2));
+    }
+
+    // ==================================================
+    // ✅ NOMINAL — récupération par id
+    // ==================================================
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id IN (9000000036)",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, capacity, user_id) VALUES (9000000036, 'Salle GetById Test', '10 rue test 75001 paris', '10 rue Test, 75001 Paris', 'MEETING_ROOM', 'APPROVED', 35.00, 12, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void place_existingId_returnsPlace() throws Exception {
+        var userCustom = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+
+        String query = """
+                { "query": "{ place(id: \\"9000000036\\") { id name address type status capacity pricePerHour } }" }
+                """;
+
+        mockMvc.perform(post(GRAPHQL_ENDPOINT)
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(query))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$.data.place.id").value("9000000036"))
+                .andExpect(jsonPath("$.data.place.name").value("Salle GetById Test"))
+                .andExpect(jsonPath("$.data.place.type").value("MEETING_ROOM"))
+                .andExpect(jsonPath("$.data.place.status").value("APPROVED"))
+                .andExpect(jsonPath("$.data.place.capacity").value(12))
+                .andExpect(jsonPath("$.data.place.pricePerHour").value(35.0));
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id IN (9000000036)",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, capacity, user_id) VALUES (9000000036, 'Salle GetById Owner Test', '10 rue test 75001 paris', '10 rue Test, 75001 Paris', 'STUDIO', 'APPROVED', 45.00, 8, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void place_withOwnerField_returnsOwnerInfo() throws Exception {
+        var userCustom = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+
+        String query = """
+                { "query": "{ place(id: \\"9000000036\\") { id name owner { id firstName lastName email } } }" }
+                """;
+
+        mockMvc.perform(post(GRAPHQL_ENDPOINT)
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(query))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$.data.place.id").value("9000000036"))
+                .andExpect(jsonPath("$.data.place.owner.firstName").value("Test"))
+                .andExpect(jsonPath("$.data.place.owner.lastName").value("User"))
+                .andExpect(jsonPath("$.data.place.owner.email").value("test.user@gmail.com"));
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.place_unavailability WHERE place_id IN (9000000036)",
+            "DELETE FROM roomify.places WHERE id IN (9000000036)",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, capacity, user_id) VALUES (9000000036, 'Salle GetById Avail Test', '10 rue test 75001 paris', '10 rue Test, 75001 Paris', 'MEETING_ROOM', 'APPROVED', 30.00, 10, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void place_withIsAvailableBetween_noConflict_returnsTrue() throws Exception {
+        var userCustom = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+
+        String query = """
+                { "query": "{ place(id: \\"9000000036\\") { id isAvailableBetween(from: \\"%s\\", to: \\"%s\\") } }" }
+                """.formatted(FUTURE_FROM, FUTURE_TO);
+
+        mockMvc.perform(post(GRAPHQL_ENDPOINT)
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(query))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$.data.place.id").value("9000000036"))
+                .andExpect(jsonPath("$.data.place.isAvailableBetween").value(true));
     }
 
     // ==================================================
@@ -548,6 +639,31 @@ class PlaceGraphQlIT extends AbstractIntegrationTest {
     }
 
     // ==================================================
+    // ❌ ERREURS MÉTIER — place(id)
+    // ==================================================
+
+    @Test
+    void place_unknownId_returnsNotFoundError() throws Exception {
+        var userCustom = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+
+        String query = """
+                { "query": "{ place(id: \\"999999999999\\") { id name } }" }
+                """;
+
+        mockMvc.perform(post(GRAPHQL_ENDPOINT)
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(query))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").exists())
+                .andExpect(jsonPath("$.errors[0].extensions.classification").value("NOT_FOUND"));
+    }
+
+    // ==================================================
     // ❌ ERREURS DE VALIDATION — pagination et filtres classiques
     // ==================================================
 
@@ -759,6 +875,20 @@ class PlaceGraphQlIT extends AbstractIntegrationTest {
     void places_unauthenticated_returnsGraphQlForbiddenError() throws Exception {
         String query = """
                 { "query": "{ places { results { id name } pageInfo { page } } }" }
+                """;
+
+        mockMvc.perform(post(GRAPHQL_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(query))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").exists())
+                .andExpect(jsonPath("$.errors[0].extensions.classification").value("FORBIDDEN"));
+    }
+
+    @Test
+    void place_unauthenticated_returnsGraphQlForbiddenError() throws Exception {
+        String query = """
+                { "query": "{ place(id: \\"9000000036\\") { id name } }" }
                 """;
 
         mockMvc.perform(post(GRAPHQL_ENDPOINT)

@@ -45,6 +45,13 @@ public class PlaceResolver {
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('USER', 'OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public PlaceResponse place(@Argument Long id) throws PlaceNotFoundException {
+        log.debug("GraphQL place query — id={}", id);
+        return placeApi.getById(id);
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('USER', 'OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public PlacePage places(@Argument PlaceFilterInput filter, @Argument PageInfoInput pagination) {
         var validatedFilter = normalizeFilter(filter);
         var validatedPagination = normalizePagination(pagination);
