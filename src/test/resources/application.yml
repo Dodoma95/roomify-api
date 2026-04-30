@@ -45,7 +45,7 @@ resilience4j:
     instances:
       sendEmailRetry:
         max-attempts: 3
-        wait-duration: 2s
+        wait-duration: 0s
         retry-exceptions:
           - com.roomify.shared.exception.TechniqueApiException
           - java.io.IOException
