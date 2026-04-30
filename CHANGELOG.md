@@ -6,6 +6,11 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 ## [unreleased]
 
+## [1.3.0]
+
+- Ajout query GraphQL "place" pour retourner les informations d'une place à partir de son id
+- Quelques montées de version dixit dependabot
+
 ## [1.2.0]
 
 - Ajout endpoints de management des bookings et des indisponibilités des places.
@@ -26,7 +31,9 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 - Ajout endpoints DELETE user
 
-[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.2.0...develop
+[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.3.0...develop
+
+[1.3.0]: https://github.com/Dodoma95/roomify-api/compare/1.2.0...1.3.0
 
 [1.2.0]: https://github.com/Dodoma95/roomify-api/compare/1.1.0...1.2.0
 
