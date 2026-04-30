@@ -63,6 +63,12 @@ public class PlaceService implements PlaceApi {
         this.placeMapper = placeMapper;
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public PlaceResponse getById(@NonNull Long id) throws PlaceNotFoundException {
+        return placeMapper.toResponse(getPlace(id));
+    }
+
     @Transactional
     @Override
     @RateLimiter(name = "creationalRateLimiter")

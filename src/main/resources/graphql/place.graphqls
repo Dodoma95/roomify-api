@@ -6,6 +6,27 @@ scalar Date
 
 type Query {
     """
+    Retourne un espace par son identifiant.
+
+    **Authentification requise** : Bearer JWT avec l'un des rôles USER, OWNER, ADMIN ou SUPER_ADMIN.
+
+    Exemple :
+    ```graphql
+    {
+      place(id: "42") {
+        id name address pricePerHour
+        owner { firstName email }
+        isAvailableBetween(from: "2030-06-01", to: "2030-06-10")
+      }
+    }
+    ```
+    """
+    place(
+        "Identifiant de l'espace."
+        id: ID!
+    ): PlaceResponse!
+
+    """
     Recherche des espaces avec filtrage optionnel et pagination.
 
     Tous les paramètres sont facultatifs. Par défaut, retourne la première page
