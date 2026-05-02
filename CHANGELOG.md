@@ -6,6 +6,10 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 ## [unreleased]
 
+## [1.4.0]
+
+- Fix de l'ajout du rôle OWNER à un utilisateur lorsqu'il crée une Place
+
 ## [1.3.0]
 
 - Ajout query GraphQL "place" pour retourner les informations d'une place à partir de son id
@@ -31,7 +35,9 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 - Ajout endpoints DELETE user
 
-[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.3.0...develop
+[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.4.0...develop
+
+[1.4.0]: https://github.com/Dodoma95/roomify-api/compare/1.3.0...1.4.0
 
 [1.3.0]: https://github.com/Dodoma95/roomify-api/compare/1.2.0...1.3.0
 

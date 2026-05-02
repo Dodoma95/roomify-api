@@ -28,6 +28,12 @@ public class UserAdapter implements UserSpi {
     }
 
     @Override
+    public void addRoleToUser(@NonNull Long userId, @NonNull Long roleId) {
+        log.debug("Adding role {} to user {}", roleId, userId);
+        userRepository.addRoleToUser(userId, roleId);
+    }
+
+    @Override
     public boolean alreadyExists(@NonNull String email) {
         log.debug("Checking if user with email {} already exists", email);
         return userRepository.existsUserByEmail(email);

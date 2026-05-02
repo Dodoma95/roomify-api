@@ -14,11 +14,13 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.roomify.domain.models.RoleEnum;
 import com.roomify.infrastucture.models.user.Role;
+import com.roomify.infrastucture.repository.UserRepository;
 
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 
 import static com.roomify.integration.utils.UserUtils.createCustomUserDetails;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -29,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Sql(statements = {
         "DELETE FROM roomify.place_unavailability WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
         "DELETE FROM roomify.bookings             WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
-        "DELETE FROM roomify.places               WHERE user_id IN (99999999998, 99999999999)"
+        "DELETE FROM roomify.places               WHERE user_id IN (99999999998, 99999999999)",
+        "DELETE FROM roomify.user_roles           WHERE user_id = 99999999998 AND role_id = (SELECT id FROM roomify.roles WHERE name = 'OWNER')"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class PlaceControllerIT extends AbstractIntegrationTest {
 
@@ -44,6 +47,9 @@ class PlaceControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private RateLimiterRegistry rateLimiterRegistry;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @BeforeEach
     void resetRateLimiter() {
@@ -113,6 +119,33 @@ class PlaceControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Salle equipee avec projecteur et tableau blanc pour vos reunions d equipe"))
                 .andExpect(jsonPath("$.capacity").value(10))
                 .andExpect(jsonPath("$.status").value("PENDING"));
+    }
+
+    @Test
+    void createPlace_nominal_assignsOwnerRoleToUser() throws Exception {
+        // GIVEN — user démarre avec uniquement le rôle USER
+        var userCustom = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+        var request = Map.of(
+                "name", VALID_NAME,
+                "type", VALID_TYPE,
+                "address", VALID_ADDRESS,
+                "pricePerHour", VALID_PRICE
+        );
+
+        // WHEN
+        mockMvc.perform(post(ENDPOINT)
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        // THEN — le rôle OWNER doit avoir été persisté en base pour cet utilisateur
+        var updatedUser = userRepository.findById(99999999998L).orElseThrow();
+        assertThat(updatedUser.getRolesEnum()).contains(RoleEnum.OWNER);
     }
 
     // =================================

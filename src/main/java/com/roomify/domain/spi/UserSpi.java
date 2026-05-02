@@ -16,4 +16,6 @@ public interface UserSpi {
 
     Optional<User> findUserById(@NonNull Long id);
 
+    void addRoleToUser(@NonNull Long userId, @NonNull Long roleId);
+
 }
