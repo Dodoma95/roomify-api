@@ -18,6 +18,7 @@ import com.roomify.shared.exception.place.CapacityIncoherenteException;
 import com.roomify.shared.exception.place.PlaceDescriptionTooShortException;
 import com.roomify.shared.exception.place.PlaceDuplicationException;
 import com.roomify.shared.exception.place.PlaceNotFoundException;
+import com.roomify.shared.exception.place.PlaceStatusInvalidException;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
 
 public interface PlaceApi {
@@ -33,6 +34,10 @@ public interface PlaceApi {
 
     void delete(@NonNull Long id, @NonNull User currentUser)
             throws PlaceNotFoundException, UserActionForbiddenException;
+
+    PlaceResponse approve(@NonNull Long id) throws PlaceNotFoundException, PlaceStatusInvalidException;
+
+    PlaceResponse reject(@NonNull Long id) throws PlaceNotFoundException, PlaceStatusInvalidException;
 
     PlacePage searchPlaces(@NonNull PlaceFilterInput filter, @NonNull PageInfoInput pagination);
 
