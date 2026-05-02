@@ -21,9 +21,9 @@ import com.roomify.domain.service.place.mapper.PlaceMapper;
 import com.roomify.domain.spi.PlaceSpi;
 import com.roomify.domain.spi.PlaceUnavailabilitySpi;
 import com.roomify.domain.spi.RoleSpi;
+import com.roomify.domain.spi.UserSpi;
 import com.roomify.infrastucture.models.place.Place;
 import com.roomify.infrastucture.models.place.PlaceUnavailability;
-import com.roomify.infrastucture.models.user.Role;
 import com.roomify.infrastucture.models.user.User;
 import com.roomify.presentation.models.in.PageInfoInput;
 import com.roomify.presentation.models.in.PlaceFilterInput;
@@ -53,13 +53,15 @@ public class PlaceService implements PlaceApi {
     private final PlaceSpi placeSpi;
     private final PlaceUnavailabilitySpi placeUnavailabilitySpi;
     private final RoleSpi roleSpi;
+    private final UserSpi userSpi;
     private final PlaceMapper placeMapper;
 
     public PlaceService(PlaceSpi placeSpi, PlaceUnavailabilitySpi placeUnavailabilitySpi,
-            RoleSpi roleSpi, PlaceMapper placeMapper) {
+            RoleSpi roleSpi, UserSpi userSpi, PlaceMapper placeMapper) {
         this.placeSpi = placeSpi;
         this.placeUnavailabilitySpi = placeUnavailabilitySpi;
         this.roleSpi = roleSpi;
+        this.userSpi = userSpi;
         this.placeMapper = placeMapper;
     }
 
@@ -278,8 +280,9 @@ public class PlaceService implements PlaceApi {
         builder.pricePerHour(request.pricePerHour());
 
         if (!currentUser.getRolesEnum().contains(RoleEnum.OWNER)) {
-            Optional<Role> byName = roleSpi.findByName(RoleEnum.OWNER);
-            byName.ifPresent(currentUser.getRoles()::add);
+            roleSpi.findByName(RoleEnum.OWNER).ifPresent(ownerRole ->
+                userSpi.addRoleToUser(currentUser.getId(), ownerRole.getId())
+            );
         }
         builder.owner(currentUser);
         return builder.build();
