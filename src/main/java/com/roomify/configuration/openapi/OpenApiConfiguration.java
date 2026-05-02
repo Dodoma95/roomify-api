@@ -17,6 +17,9 @@ import io.swagger.v3.oas.models.tags.Tag;
 @Configuration
 public class OpenApiConfiguration {
 
+    private static final String GRAPHIQL_ENDPOINT = "/graphiql";
+    private static final String GRAPHQL_TAG_NAME = "GraphQL";
+    private static final String DESCRIPTION_GRAPHIQL = "Ouvrir GraphiQL";
     private static final String DESCRIPTION = """
             API REST du backend Roomify — Architecture Hexagonale, Spring Boot 4, JWT stateless.
             
@@ -79,12 +82,12 @@ public class OpenApiConfiguration {
                 .pathsToMatch("/api/v1/users/**")
                 .addOpenApiCustomizer(openApi -> openApi
                         .addTagsItem(new Tag()
-                                .name("GraphQL")
+                                .name(GRAPHQL_TAG_NAME)
                                 .description(
                                         "La recherche des utilisateurs avec filtres est exposée via GraphQL — query `users` avec filtres partiels, filtre par rôle et pagination.")
                                 .externalDocs(new ExternalDocumentation()
-                                        .description("Ouvrir GraphiQL")
-                                        .url("/graphiql")
+                                        .description(DESCRIPTION_GRAPHIQL)
+                                        .url(GRAPHIQL_ENDPOINT)
                                 )
                         )
                 )
@@ -98,12 +101,12 @@ public class OpenApiConfiguration {
                 .pathsToMatch("/api/v1/places/**")
                 .addOpenApiCustomizer(openApi -> openApi
                         .addTagsItem(new Tag()
-                                .name("GraphQL")
+                                .name(GRAPHQL_TAG_NAME)
                                 .description(
                                         "Les espaces sont également exposés via GraphQL — query `places`, `place` et `availableSlots` - filtres avancés et pagination.")
                                 .externalDocs(new ExternalDocumentation()
-                                        .description("Ouvrir GraphiQL")
-                                        .url("/graphiql")
+                                        .description(DESCRIPTION_GRAPHIQL)
+                                        .url(GRAPHIQL_ENDPOINT)
                                 )
                         )
                 )
@@ -115,6 +118,17 @@ public class OpenApiConfiguration {
         return GroupedOpenApi.builder()
                 .group("bookings")
                 .pathsToMatch("/api/v1/bookings/**")
+                .addOpenApiCustomizer(openApi -> openApi
+                        .addTagsItem(new Tag()
+                                .name(GRAPHQL_TAG_NAME)
+                                .description(
+                                        "La recherche des réservations avec filtres est exposée via GraphQL — query `bookings` avec filtres avancés (statuts, dates, prix, lieu, locataire, propriétaire) et pagination.")
+                                .externalDocs(new ExternalDocumentation()
+                                        .description(DESCRIPTION_GRAPHIQL)
+                                        .url(GRAPHIQL_ENDPOINT)
+                                )
+                        )
+                )
                 .build();
     }
 

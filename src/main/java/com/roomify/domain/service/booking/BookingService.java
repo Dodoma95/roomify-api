@@ -8,10 +8,14 @@ import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static java.util.Objects.isNull;
+
 import com.roomify.domain.api.BookingApi;
+import com.roomify.domain.models.BookingSearchFilter;
 import com.roomify.domain.models.BookingStatusEnum;
 import com.roomify.domain.models.PlaceStatusEnum;
 import com.roomify.domain.models.UnavailabilityReasonEnum;
@@ -26,8 +30,12 @@ import com.roomify.infrastucture.models.booking.Booking;
 import com.roomify.infrastucture.models.place.Place;
 import com.roomify.infrastucture.models.place.PlaceUnavailability;
 import com.roomify.infrastucture.models.user.User;
+import com.roomify.presentation.models.in.BookingFilterInput;
 import com.roomify.presentation.models.in.BookingRequest;
+import com.roomify.presentation.models.in.PageInfoInput;
+import com.roomify.presentation.models.out.BookingPage;
 import com.roomify.presentation.models.out.BookingResponse;
+import com.roomify.presentation.models.out.PageInfo;
 import com.roomify.shared.exception.booking.BookingAlreadyConfirmedException;
 import com.roomify.shared.exception.booking.BookingInvalidDatesException;
 import com.roomify.shared.exception.booking.BookingNotCancellableException;
@@ -267,6 +275,54 @@ public class BookingService implements BookingApi {
                     .message("You are not allowed to view bookings for this place.")
                     .build();
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public @NonNull BookingPage searchBookings(@Nullable BookingFilterInput filter, @NonNull PageInfoInput pagination) {
+        BookingSearchFilter searchFilter = buildSearchFilter(filter, pagination);
+        Page<Booking> result = bookingSpi.searchBookings(searchFilter);
+        PageInfo pageInfo = new PageInfo(
+                result.getNumber(),
+                result.getSize(),
+                (int) result.getTotalElements(),
+                result.getTotalPages(),
+                result.hasNext(),
+                result.hasPrevious()
+        );
+        return new BookingPage(bookingMapper.toGraphQLResponseList(result.getContent()), pageInfo);
+    }
+
+    private static BookingSearchFilter buildSearchFilter(@Nullable BookingFilterInput filter, @NonNull PageInfoInput pagination) {
+        if (isNull(filter)) {
+            return BookingSearchFilter.builder()
+                    .page(pagination.getPage())
+                    .pageSize(pagination.getPageSize())
+                    .build();
+        }
+        return BookingSearchFilter.builder()
+                .statuses(filter.getStatuses())
+                .startDateFrom(filter.getStartDateFrom())
+                .startDateTo(filter.getStartDateTo())
+                .endDateFrom(filter.getEndDateFrom())
+                .endDateTo(filter.getEndDateTo())
+                .totalPriceMin(filter.getTotalPriceMin() != null
+                        ? BigDecimal.valueOf(filter.getTotalPriceMin()) : null)
+                .totalPriceMax(filter.getTotalPriceMax() != null
+                        ? BigDecimal.valueOf(filter.getTotalPriceMax()) : null)
+                .createdAtFrom(filter.getCreatedAtFrom())
+                .createdAtTo(filter.getCreatedAtTo())
+                .notesContains(filter.getNotesContains())
+                .placeId(filter.getPlaceId())
+                .placeNameContains(filter.getPlaceNameContains())
+                .placeTypes(filter.getPlaceTypes())
+                .placeStatuses(filter.getPlaceStatuses())
+                .userId(filter.getUserId())
+                .userEmailContains(filter.getUserEmailContains())
+                .ownerId(filter.getOwnerId())
+                .page(pagination.getPage())
+                .pageSize(pagination.getPageSize())
+                .build();
     }
 
     private static Booking buildBooking(@NonNull BookingRequest request, @NonNull Place place, @NonNull User currentUser) {

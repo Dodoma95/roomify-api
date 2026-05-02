@@ -6,7 +6,9 @@ import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
 
+import com.roomify.domain.models.BookingSearchFilter;
 import com.roomify.domain.models.BookingStatusEnum;
 import com.roomify.infrastucture.models.booking.Booking;
 
@@ -23,4 +25,6 @@ public interface BookingSpi {
     List<Booking> findByPlaceId(@NonNull Long placeId, @Nullable BookingStatusEnum status);
 
     List<Booking> findConfirmedBookingsEndedBefore(@NonNull LocalDate date);
+
+    @NonNull Page<Booking> searchBookings(@NonNull BookingSearchFilter filter);
 }

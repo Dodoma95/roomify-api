@@ -12,6 +12,7 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 - Ajout d'un endpoint PATCH /places/{id}/approve pour approuver une place
 - Ajout d'un endpoint PATCH /places/{id}/reject pour refuser une place
 - Ajout d'un endpoint graphql "users" pour lister tous les utilisateurs avec filtres
+- Ajout d'un endpoint graphql "bookings" pour lister tous les bookings avec filtres
 
 ## [1.3.0]
 
