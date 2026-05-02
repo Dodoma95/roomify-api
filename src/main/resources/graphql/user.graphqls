@@ -1,0 +1,129 @@
+"""
+Scalar représentant un timestamp ISO-8601 incluant l'heure (ex. : 2025-01-15T10:30:00Z).
+Mappé sur java.time.Instant côté serveur.
+"""
+scalar DateTime
+
+extend type Query {
+    """
+    Recherche des utilisateurs avec filtrage optionnel et pagination.
+
+    Tous les paramètres sont facultatifs. Par défaut, retourne la première page
+    de 20 résultats sans aucun filtre appliqué.
+
+    **Authentification requise** : Bearer JWT avec l'un des rôles ADMIN ou SUPER_ADMIN.
+
+    Exemple — owners dont le prénom commence par "a" et dont l'email est vérifié :
+    ```graphql
+    {
+      users(
+        filter: { firstNameContains: "a", role: OWNER, emailVerified: true, deleted: false }
+        pagination: { page: 0, pageSize: 10 }
+      ) {
+        results { id email firstName lastName roles enabled emailVerified deletedAt }
+        pageInfo { totalElements totalPages hasNext }
+      }
+    }
+    ```
+    """
+    users(
+        "Critères de filtrage sur les attributs utilisateur. Tous les champs sont facultatifs et cumulables."
+        filter: UserFilterInput
+        "Paramètres de pagination. Défaut : page 0, taille 20. Taille maximale autorisée : 100."
+        pagination: PageInfoInput
+    ): UserPage!
+}
+
+"""
+Critères de filtrage appliqués à la recherche d'utilisateurs.
+
+Tous les champs sont facultatifs. Les filtres actifs sont combinés avec un AND logique.
+Les recherches sur les chaînes sont insensibles à la casse et partielles.
+"""
+input UserFilterInput {
+    "Filtre par correspondance partielle sur le prénom (insensible à la casse). Ex. : 'ali' retrouve 'Alice'."
+    firstNameContains: String
+
+    "Filtre par correspondance partielle sur le nom (insensible à la casse)."
+    lastNameContains: String
+
+    "Filtre par correspondance partielle sur l'email (insensible à la casse). Ex. : '@gmail' retrouve tous les comptes Gmail."
+    emailContains: String
+
+    "Filtre les utilisateurs possédant exactement ce rôle."
+    role: UserRole
+
+    """
+    Filtre sur la suppression logique.
+    - `true`  : uniquement les utilisateurs soft-deleted (deleted_at renseigné).
+    - `false` : uniquement les utilisateurs actifs (deleted_at null).
+    - omis    : tous les utilisateurs, actifs ou supprimés.
+    """
+    deleted: Boolean
+
+    "Filtre les utilisateurs dont le compte est activé (`true`) ou désactivé (`false`)."
+    enabled: Boolean
+
+    "Filtre les utilisateurs dont l'adresse email est vérifiée (`true`) ou non (`false`)."
+    emailVerified: Boolean
+}
+
+"""
+Réponse paginée de la query `users`.
+"""
+type UserPage {
+    "Liste des utilisateurs correspondant aux critères pour la page demandée."
+    results: [UserAdminResponse!]!
+
+    "Métadonnées de pagination."
+    pageInfo: PageInfo!
+}
+
+"""
+Détail d'un utilisateur tel que visible par un administrateur.
+"""
+type UserAdminResponse {
+    "Identifiant unique de l'utilisateur."
+    id: ID!
+
+    "Adresse email."
+    email: String!
+
+    "Prénom."
+    firstName: String!
+
+    "Nom de famille."
+    lastName: String!
+
+    "Rôles assignés à l'utilisateur."
+    roles: [UserRole!]!
+
+    "Indique si le compte est activé."
+    enabled: Boolean!
+
+    "Indique si l'adresse email a été vérifiée."
+    emailVerified: Boolean!
+
+    "Timestamp de suppression logique. Null si l'utilisateur est actif."
+    deletedAt: DateTime
+
+    "Identifiant de l'administrateur ayant effectué la suppression. Null si l'utilisateur est actif."
+    deletedBy: ID
+}
+
+"""
+Rôle fonctionnel d'un utilisateur dans Roomify.
+"""
+enum UserRole {
+    "Utilisateur standard pouvant consulter et réserver des espaces."
+    USER
+
+    "Propriétaire d'un ou plusieurs espaces."
+    OWNER
+
+    "Administrateur pouvant valider les espaces et gérer les utilisateurs."
+    ADMIN
+
+    "Super-administrateur avec accès complet."
+    SUPER_ADMIN
+}

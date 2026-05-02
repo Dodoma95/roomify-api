@@ -19,16 +19,16 @@ public class OpenApiConfiguration {
 
     private static final String DESCRIPTION = """
             API REST du backend Roomify — Architecture Hexagonale, Spring Boot 4, JWT stateless.
-
+            
             ---
-
+            
             ### Outils GraphQL
-
+            
             | Outil | Rôle |
             |---|---|
             | [**GraphiQL**](/graphiql) | IDE interactif : écrire et exécuter des requêtes GraphQL |
             | [**Voyager**](/voyager) | Visualisation du schéma GraphQL sous forme de graphe |
-
+            
             > **Authentification** : toutes les routes (REST et GraphQL) requièrent un Bearer JWT,\
              sauf les endpoints d'authentification publics listés ci-dessous.
             > Utilisez le bouton **Authorize** pour renseigner votre token.
@@ -77,6 +77,17 @@ public class OpenApiConfiguration {
         return GroupedOpenApi.builder()
                 .group("users")
                 .pathsToMatch("/api/v1/users/**")
+                .addOpenApiCustomizer(openApi -> openApi
+                        .addTagsItem(new Tag()
+                                .name("GraphQL")
+                                .description(
+                                        "La recherche des utilisateurs avec filtres est exposée via GraphQL — query `users` avec filtres partiels, filtre par rôle et pagination.")
+                                .externalDocs(new ExternalDocumentation()
+                                        .description("Ouvrir GraphiQL")
+                                        .url("/graphiql")
+                                )
+                        )
+                )
                 .build();
     }
 
@@ -88,7 +99,8 @@ public class OpenApiConfiguration {
                 .addOpenApiCustomizer(openApi -> openApi
                         .addTagsItem(new Tag()
                                 .name("GraphQL")
-                                .description("Les espaces sont également exposés via GraphQL — filtres avancés et pagination.")
+                                .description(
+                                        "Les espaces sont également exposés via GraphQL — query `places`, `place` et `availableSlots` - filtres avancés et pagination.")
                                 .externalDocs(new ExternalDocumentation()
                                         .description("Ouvrir GraphiQL")
                                         .url("/graphiql")

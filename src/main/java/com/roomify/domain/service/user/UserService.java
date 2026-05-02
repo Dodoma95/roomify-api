@@ -1,20 +1,28 @@
 package com.roomify.domain.service.user;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.roomify.domain.api.UserApi;
 import com.roomify.domain.models.RoleEnum;
+import com.roomify.domain.models.UserSearchFilter;
 import com.roomify.domain.service.auth.AuthService;
+import com.roomify.domain.service.user.mapper.UserMapper;
 import com.roomify.domain.spi.UserSpi;
 import com.roomify.infrastucture.models.user.User;
+import com.roomify.presentation.models.in.PageInfoInput;
 import com.roomify.presentation.models.in.UpdateMeRequest;
+import com.roomify.presentation.models.in.UserFilterInput;
+import com.roomify.presentation.models.out.PageInfo;
+import com.roomify.presentation.models.out.UserPage;
 import com.roomify.presentation.models.out.UserResponse;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
 import com.roomify.shared.exception.user.UserNotFoundException;
@@ -25,12 +33,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserService implements UserApi {
 
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final UserSpi userSpi;
     private final AuthService authService;
+    private final UserMapper userMapper;
 
-    public UserService(UserSpi userSpi, AuthService authService) {
+    public UserService(UserSpi userSpi, AuthService authService, UserMapper userMapper) {
         this.userSpi = userSpi;
         this.authService = authService;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -101,5 +114,38 @@ public class UserService implements UserApi {
                         .map(GrantedAuthority::getAuthority)
                         .toList()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public @NonNull UserPage searchUsers(@Nullable UserFilterInput filter, @NonNull PageInfoInput pagination) {
+        int page = Objects.requireNonNullElse(pagination.getPage(), 0);
+        int pageSize = Objects.requireNonNullElse(pagination.getPageSize(), DEFAULT_PAGE_SIZE);
+        pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+
+        UserFilterInput f = Objects.requireNonNullElse(filter, new UserFilterInput());
+
+        UserSearchFilter searchFilter = UserSearchFilter.builder()
+                .firstNameContains(f.getFirstNameContains())
+                .lastNameContains(f.getLastNameContains())
+                .emailContains(f.getEmailContains())
+                .role(f.getRole())
+                .deleted(f.getDeleted())
+                .enabled(f.getEnabled())
+                .emailVerified(f.getEmailVerified())
+                .page(page)
+                .pageSize(pageSize)
+                .build();
+
+        Page<User> result = userSpi.searchUsers(searchFilter);
+        PageInfo pageInfo = new PageInfo(
+                page,
+                pageSize,
+                (int) result.getTotalElements(),
+                result.getTotalPages(),
+                result.hasNext(),
+                result.hasPrevious()
+        );
+        return new UserPage(userMapper.toAdminResponseList(result.getContent()), pageInfo);
     }
 }
