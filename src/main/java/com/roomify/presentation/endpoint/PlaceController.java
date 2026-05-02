@@ -22,6 +22,7 @@ import com.roomify.shared.exception.place.CapacityIncoherenteException;
 import com.roomify.shared.exception.place.PlaceDescriptionTooShortException;
 import com.roomify.shared.exception.place.PlaceDuplicationException;
 import com.roomify.shared.exception.place.PlaceNotFoundException;
+import com.roomify.shared.exception.place.PlaceStatusInvalidException;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,6 +109,54 @@ public class PlaceController {
         } catch (PlaceDuplicationException e) {
             throw ClientApiException.ofConflict(e.getMessage(), e);
         } catch (CapacityIncoherenteException | PlaceDescriptionTooShortException e) {
+            throw ClientApiException.ofBadRequest(e.getMessage(), e);
+        }
+    }
+
+    @Operation(
+            summary = "Approve a place",
+            description = "Allows an admin to approve a PENDING place. Only places in PENDING status can be approved.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(responseCode = "200", description = "Place successfully approved",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = PlaceResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Place is not in PENDING status", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Missing or invalid JWT token", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Place not found", content = @Content)
+    @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<PlaceResponse> approvePlace(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(placeApi.approve(id));
+        } catch (PlaceNotFoundException e) {
+            throw ClientApiException.ofNotFound(e.getMessage(), e);
+        } catch (PlaceStatusInvalidException e) {
+            throw ClientApiException.ofBadRequest(e.getMessage(), e);
+        }
+    }
+
+    @Operation(
+            summary = "Reject a place",
+            description = "Allows an admin to reject a PENDING or APPROVED place.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(responseCode = "200", description = "Place successfully rejected",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = PlaceResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Place is already REJECTED", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Missing or invalid JWT token", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Place not found", content = @Content)
+    @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<PlaceResponse> rejectPlace(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(placeApi.reject(id));
+        } catch (PlaceNotFoundException e) {
+            throw ClientApiException.ofNotFound(e.getMessage(), e);
+        } catch (PlaceStatusInvalidException e) {
             throw ClientApiException.ofBadRequest(e.getMessage(), e);
         }
     }

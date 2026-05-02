@@ -37,6 +37,7 @@ import com.roomify.shared.exception.place.CapacityIncoherenteException;
 import com.roomify.shared.exception.place.PlaceDescriptionTooShortException;
 import com.roomify.shared.exception.place.PlaceDuplicationException;
 import com.roomify.shared.exception.place.PlaceNotFoundException;
+import com.roomify.shared.exception.place.PlaceStatusInvalidException;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -141,6 +142,32 @@ public class PlaceService implements PlaceApi {
         Place place = getPlace(id);
         controlOwnership(place, currentUser);
         placeSpi.deletePlace(id);
+    }
+
+    @Transactional
+    @Override
+    public PlaceResponse approve(@NonNull Long id) throws PlaceNotFoundException, PlaceStatusInvalidException {
+        Place place = getPlace(id);
+        if (!PlaceStatusEnum.PENDING.equals(place.getStatus())) {
+            throw PlaceStatusInvalidException.builder()
+                    .message("Only PENDING places can be approved. Current status: %s".formatted(place.getStatus()))
+                    .build();
+        }
+        place.setStatus(PlaceStatusEnum.APPROVED);
+        return placeMapper.toResponse(placeSpi.updatePlace(place));
+    }
+
+    @Transactional
+    @Override
+    public PlaceResponse reject(@NonNull Long id) throws PlaceNotFoundException, PlaceStatusInvalidException {
+        Place place = getPlace(id);
+        if (PlaceStatusEnum.REJECTED.equals(place.getStatus())) {
+            throw PlaceStatusInvalidException.builder()
+                    .message("Place is already REJECTED.")
+                    .build();
+        }
+        place.setStatus(PlaceStatusEnum.REJECTED);
+        return placeMapper.toResponse(placeSpi.updatePlace(place));
     }
 
     @Transactional(readOnly = true)

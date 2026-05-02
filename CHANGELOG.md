@@ -9,6 +9,9 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 ## [1.4.0]
 
 - Fix de l'ajout du rôle OWNER à un utilisateur lorsqu'il crée une Place
+- Ajout d'un endpoint PATCH /places/{id}/approve pour approuver une place
+- Ajout d'un endpoint PATCH /places/{id}/reject pour refuser une place
+- Ajout d'un endpoint graphql "users" pour lister tous les utilisateurs avec filtres
 
 ## [1.3.0]
 
@@ -21,7 +24,7 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 - Amélioration des events envoie de mail et templates
 - Amélioration de la documentation
 - Ajout d'un filtre sur les dates recherchées query graphql "places"
-- Ajout nouvelle query "availableSlots" pour retourner les disponibilités d'une place sur un mois donné
+- Ajout d'une nouvelle query "availableSlots" pour retourner les disponibilités d'une place sur un mois donné
 
 ## [1.1.0]
 

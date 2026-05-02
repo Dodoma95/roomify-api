@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings({"java:S5976", "java:S4144"})
 @Sql(statements = {
         "DELETE FROM roomify.place_unavailability WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
         "DELETE FROM roomify.bookings             WHERE place_id IN (SELECT id FROM roomify.places WHERE user_id IN (99999999998, 99999999999))",
@@ -639,6 +640,205 @@ class PlaceControllerIT extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(Map.of("name", "Bureau Professionnel"))))
                 .andExpect(status().isConflict());
+    }
+
+    // =================================
+    // ✅ NOMINAL APPROVE / REJECT
+    // =================================
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle A Approuver', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'PENDING', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void approvePlace_pendingPlace_returns200WithApprovedStatus() throws Exception {
+        // GIVEN — place PENDING, appelant ADMIN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/approve")
+                        .with(user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(9000000030L))
+                .andExpect(jsonPath("$.status").value("APPROVED"));
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle A Rejeter', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'PENDING', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void rejectPlace_pendingPlace_returns200WithRejectedStatus() throws Exception {
+        // GIVEN — place PENDING, appelant ADMIN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/reject")
+                        .with(user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(9000000030L))
+                .andExpect(jsonPath("$.status").value("REJECTED"));
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle Approuvee A Rejeter', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'APPROVED', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void rejectPlace_approvedPlace_returns200WithRejectedStatus() throws Exception {
+        // GIVEN — place APPROVED : un admin peut encore la rejeter (déslistage)
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/reject")
+                        .with(user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("REJECTED"));
+    }
+
+    // =================================
+    // ❌ ERREURS MÉTIER APPROVE / REJECT
+    // =================================
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle Deja Approuvee', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'APPROVED', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void approvePlace_alreadyApproved_returns400() throws Exception {
+        // GIVEN — place déjà APPROVED
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/approve")
+                        .with(user(admin)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle Deja Rejetee', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'REJECTED', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void approvePlace_rejected_returns400() throws Exception {
+        // GIVEN — place REJECTED, seul PENDING est approvable
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/approve")
+                        .with(user(admin)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle Deja Rejetee', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'REJECTED', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void rejectPlace_alreadyRejected_returns400() throws Exception {
+        // GIVEN — place déjà REJECTED
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/reject")
+                        .with(user(admin)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void approvePlace_notFound_returns404() throws Exception {
+        // GIVEN — aucune place avec cet id
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9999999999/approve")
+                        .with(user(admin)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejectPlace_notFound_returns404() throws Exception {
+        // GIVEN — aucune place avec cet id
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+
+        // WHEN + THEN
+        mockMvc.perform(patch(ENDPOINT + "/9999999999/reject")
+                        .with(user(admin)))
+                .andExpect(status().isNotFound());
+    }
+
+    // =================================
+    // 🔒 SÉCURITÉ APPROVE / REJECT
+    // =================================
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle Test Securite', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'PENDING', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void approvePlace_withOwnerRole_returns403() throws Exception {
+        // GIVEN — l'appelant est OWNER, pas ADMIN
+        var owner = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.OWNER).build())
+        );
+
+        // WHEN + THEN — @PreAuthorize exige ADMIN ou SUPER_ADMIN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/approve")
+                        .with(user(owner)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.places WHERE id = 9000000030",
+            "INSERT INTO roomify.places (id, name, normalized_address, address, type, status, price_per_hour, user_id) VALUES (9000000030, 'Salle Test Securite', '5 rue de la paix 75002 paris', '5 rue de la Paix, 75002 Paris', 'MEETING_ROOM', 'PENDING', 20.00, 99999999998)"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void rejectPlace_withOwnerRole_returns403() throws Exception {
+        // GIVEN — l'appelant est OWNER, pas ADMIN
+        var owner = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.OWNER).build())
+        );
+
+        // WHEN + THEN — @PreAuthorize exige ADMIN ou SUPER_ADMIN
+        mockMvc.perform(patch(ENDPOINT + "/9000000030/reject")
+                        .with(user(owner)))
+                .andExpect(status().isForbidden());
     }
 
     // =================================
