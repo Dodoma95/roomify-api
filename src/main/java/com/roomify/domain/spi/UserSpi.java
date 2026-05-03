@@ -20,6 +20,8 @@ public interface UserSpi {
 
     void addRoleToUser(@NonNull Long userId, @NonNull Long roleId);
 
+    void removeRoleFromUser(@NonNull Long userId, @NonNull Long roleId);
+
     @NonNull Page<User> searchUsers(@NonNull UserSearchFilter filter);
 
 }

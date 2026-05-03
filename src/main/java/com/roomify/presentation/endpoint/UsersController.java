@@ -16,8 +16,13 @@ import com.roomify.domain.api.UserApi;
 import com.roomify.infrastucture.models.user.CustomUserDetails;
 import com.roomify.infrastucture.models.user.User;
 import com.roomify.presentation.models.in.UpdateMeRequest;
+import com.roomify.presentation.models.in.UpdateUserRoleRequest;
+import com.roomify.presentation.models.out.UserAdminResponse;
 import com.roomify.presentation.models.out.UserResponse;
 import com.roomify.shared.exception.ClientApiException;
+import com.roomify.shared.exception.user.RoleAlreadyAssignedException;
+import com.roomify.shared.exception.user.RoleNotAssignedException;
+import com.roomify.shared.exception.user.RoleNotFoundException;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
 import com.roomify.shared.exception.user.UserNotFoundException;
 
@@ -45,34 +50,12 @@ public class UsersController {
             description = "Returns information about the currently authenticated user",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @ApiResponse(
-            responseCode = "200",
-            description = "Authenticated user information successfully retrieved",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = UserResponse.class)
-            )
-    )
-    @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Missing or invalid JWT token",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "403",
-            description = "Forbidden - Insufficient permissions",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "429",
-            description = "Too many requests",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "500",
-            description = "Internal server error",
-            content = @Content
-    )
+    @ApiResponse(responseCode = "200", description = "Authenticated user information successfully retrieved",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Missing or invalid JWT token", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content)
+    @ApiResponse(responseCode = "429", description = "Too many requests", content = @Content)
+    @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal CustomUserDetails customUser) {
         User user = customUser.user();
@@ -94,21 +77,10 @@ public class UsersController {
             description = "Partially updates the authenticated user",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @ApiResponse(
-            responseCode = "200",
-            description = "User successfully updated",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = UserResponse.class)
-            ))
-    @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized",
-            content = @Content)
-    @ApiResponse(
-            responseCode = "404",
-            description = "User not found",
-            content = @Content)
+    @ApiResponse(responseCode = "200", description = "User successfully updated",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
     @PatchMapping("/me")
     public ResponseEntity<UserResponse> updateMe(
             @AuthenticationPrincipal CustomUserDetails customUser,
@@ -122,25 +94,13 @@ public class UsersController {
     }
 
     @Operation(
-            summary = "Delete a user",
-            description = "Deletes a user by id (soft delete). Only ADMIN or SUPER_ADMIN can perform this action",
+            summary = "Delete current user",
+            description = "Soft-deletes the currently authenticated user",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @ApiResponse(
-            responseCode = "204",
-            description = "User successfully deleted",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Missing or invalid JWT token",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "User not found",
-            content = @Content
-    )
+    @ApiResponse(responseCode = "204", description = "User successfully deleted", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Missing or invalid JWT token", content = @Content)
+    @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal CustomUserDetails customUser) {
         try {
@@ -156,26 +116,10 @@ public class UsersController {
             description = "Deletes a user by id (soft delete). Only ADMIN or SUPER_ADMIN can perform this action",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @ApiResponse(
-            responseCode = "204",
-            description = "User successfully deleted",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized - Missing or invalid JWT token",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "403",
-            description = "Forbidden - Insufficient permissions",
-            content = @Content
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "User not found",
-            content = @Content
-    )
+    @ApiResponse(responseCode = "204", description = "User successfully deleted", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Missing or invalid JWT token", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content)
+    @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> deleteUser(
@@ -192,4 +136,37 @@ public class UsersController {
         }
     }
 
+    @Operation(
+            summary = "Update user role",
+            description = "Adds or removes a role from a user. SUPER_ADMIN can modify any user. ADMIN can only modify users with USER or OWNER roles and cannot assign ADMIN or SUPER_ADMIN roles.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(responseCode = "200", description = "Role successfully updated",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserAdminResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid request or role not assigned to target user", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Missing or invalid JWT token", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions", content = @Content)
+    @ApiResponse(responseCode = "404", description = "User or role not found", content = @Content)
+    @ApiResponse(responseCode = "409", description = "Role already assigned to user", content = @Content)
+    @ApiResponse(responseCode = "429", description = "Too many requests", content = @Content)
+    @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserAdminResponse> updateUserRole(
+            @PathVariable Long id,
+            @RequestBody @Valid UpdateUserRoleRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        try {
+            return ResponseEntity.ok(userApi.updateUserRole(id, request, currentUser.user()));
+        } catch (UserNotFoundException | RoleNotFoundException e) {
+            throw ClientApiException.ofNotFound(e.getMessage(), e);
+        } catch (UserActionForbiddenException e) {
+            throw ClientApiException.ofForbidden(e.getMessage(), e);
+        } catch (RoleAlreadyAssignedException e) {
+            throw ClientApiException.ofConflict(e.getMessage(), e);
+        } catch (RoleNotAssignedException e) {
+            throw ClientApiException.ofBadRequest(e.getMessage(), e);
+        }
+    }
 }

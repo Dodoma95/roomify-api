@@ -19,7 +19,11 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     Optional<User> findByIdAndDeletedAtIsNull(Long id);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "INSERT INTO roomify.user_roles (user_id, role_id) VALUES (:userId, :roleId) ON CONFLICT DO NOTHING", nativeQuery = true)
     void addRoleToUser(@Param("userId") Long userId, @Param("roleId") Long roleId);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "DELETE FROM roomify.user_roles WHERE user_id = :userId AND role_id = :roleId", nativeQuery = true)
+    void removeRoleFromUser(@Param("userId") Long userId, @Param("roleId") Long roleId);
 }
