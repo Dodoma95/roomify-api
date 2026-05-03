@@ -3,6 +3,7 @@ package com.roomify.integration;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roomify.domain.models.RoleEnum;
 import com.roomify.infrastucture.models.user.Role;
 import com.roomify.infrastucture.repository.UserRepository;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 
 import static com.roomify.integration.utils.UserUtils.createCustomUserDetails;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Sql(statements = {
         "DELETE FROM roomify.email_verification_tokens WHERE user_id IN (SELECT id FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998)",
         "DELETE FROM roomify.user_roles WHERE user_id IN (SELECT id FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998)",
-        "DELETE FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998"
+        "DELETE FROM roomify.users WHERE email = 'test.user@gmail.com' AND id != 99999999998",
+        "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL, email = 'test.user@gmail.com' WHERE id = 99999999998",
+        "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+        "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class UserControllerIT extends AbstractIntegrationTest {
 
@@ -37,6 +43,18 @@ class UserControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RateLimiterRegistry rateLimiterRegistry;
+
+    @BeforeEach
+    void resetRateLimiter() {
+        RateLimiterConfig config = rateLimiterRegistry
+                .rateLimiter("creationalRateLimiter")
+                .getRateLimiterConfig();
+        rateLimiterRegistry.remove("creationalRateLimiter");
+        rateLimiterRegistry.rateLimiter("creationalRateLimiter", config);
+    }
 
     @Test
     void get_me_casNominal() throws Exception {
