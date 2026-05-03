@@ -9,10 +9,10 @@ import com.roomify.infrastucture.models.user.User;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class UserSpecifications {
-
-    private UserSpecifications() {}
 
     public static Specification<User> firstNameContains(String value) {
         return (root, query, cb) ->

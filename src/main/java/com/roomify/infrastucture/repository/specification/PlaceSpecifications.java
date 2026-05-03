@@ -15,10 +15,10 @@ import com.roomify.infrastucture.models.place.PlaceUnavailability;
 
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class PlaceSpecifications {
-
-    private PlaceSpecifications() {}
 
     public static Specification<Place> hasTypes(List<PlaceTypeEnum> types) {
         return (root, query, cb) -> root.get("type").in(types);

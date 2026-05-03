@@ -1,0 +1,184 @@
+extend type Query {
+    """
+    Recherche des réservations avec filtrage avancé et pagination.
+
+    Tous les paramètres sont facultatifs. Par défaut, retourne la première page
+    de 20 résultats sans aucun filtre appliqué.
+
+    **Authentification requise** : Bearer JWT avec l'un des rôles ADMIN ou SUPER_ADMIN.
+
+    Exemple — réservations CONFIRMED pour une place donnée, créées en 2025 :
+    ```graphql
+    {
+      bookings(
+        filter: {
+          statuses: [CONFIRMED]
+          placeId: "42"
+          createdAtFrom: "2025-01-01T00:00:00Z"
+          createdAtTo: "2025-12-31T23:59:59Z"
+        }
+        pagination: { page: 0, pageSize: 10 }
+      ) {
+        results {
+          id status totalPrice startDate endDate
+          place { id name address type owner { firstName email } }
+          booker { id firstName lastName email }
+        }
+        pageInfo { totalElements totalPages hasNext }
+      }
+    }
+    ```
+    """
+    bookings(
+        "Critères de filtrage sur les attributs de la réservation. Tous les champs sont facultatifs et cumulables."
+        filter: BookingFilterInput
+        "Paramètres de pagination. Défaut : page 0, taille 20. Taille maximale autorisée : 50."
+        pagination: PageInfoInput
+    ): BookingPage!
+}
+
+"""
+Critères de filtrage appliqués à la recherche de réservations.
+
+Tous les champs sont facultatifs. Les filtres actifs sont combinés avec un AND logique.
+Les recherches sur les chaînes sont insensibles à la casse et partielles.
+Les plages (prix, dates) doivent être cohérentes si les deux bornes sont fournies.
+"""
+input BookingFilterInput {
+    "Filtre sur le ou les statuts de réservation. Retourne les réservations correspondant à l'un des statuts listés."
+    statuses: [BookingStatus!]
+
+    "Date de début de réservation >= cette valeur (YYYY-MM-DD)."
+    startDateFrom: Date
+
+    "Date de début de réservation <= cette valeur (YYYY-MM-DD). Doit être >= startDateFrom si les deux sont fournis."
+    startDateTo: Date
+
+    "Date de fin de réservation >= cette valeur (YYYY-MM-DD)."
+    endDateFrom: Date
+
+    "Date de fin de réservation <= cette valeur (YYYY-MM-DD). Doit être >= endDateFrom si les deux sont fournis."
+    endDateTo: Date
+
+    "Prix total minimum inclusif (en euros). Doit être <= totalPriceMax si les deux sont fournis."
+    totalPriceMin: Float
+
+    "Prix total maximum inclusif (en euros). Doit être >= totalPriceMin si les deux sont fournis."
+    totalPriceMax: Float
+
+    "Timestamp de création >= cette valeur (ISO-8601 avec heure, ex. : 2025-01-01T00:00:00Z)."
+    createdAtFrom: DateTime
+
+    "Timestamp de création <= cette valeur (ISO-8601 avec heure). Doit être >= createdAtFrom si les deux sont fournis."
+    createdAtTo: DateTime
+
+    "Filtre par correspondance partielle sur les notes (insensible à la casse)."
+    notesContains: String
+
+    "Filtre par identifiant exact du lieu réservé."
+    placeId: ID
+
+    "Filtre par correspondance partielle sur le nom du lieu (insensible à la casse)."
+    placeNameContains: String
+
+    "Filtre sur le ou les types du lieu. Retourne les réservations pour les lieux correspondant à l'un des types listés."
+    placeTypes: [PlaceType!]
+
+    "Filtre sur le ou les statuts de validation du lieu."
+    placeStatuses: [PlaceStatus!]
+
+    "Filtre par identifiant exact du locataire (utilisateur ayant effectué la réservation)."
+    userId: ID
+
+    "Filtre par correspondance partielle sur l'email du locataire (insensible à la casse)."
+    userEmailContains: String
+
+    "Filtre par identifiant exact du propriétaire du lieu réservé."
+    ownerId: ID
+}
+
+"""
+Réponse paginée de la query `bookings`.
+"""
+type BookingPage {
+    "Liste des réservations correspondant aux critères pour la page demandée."
+    results: [BookingGraphQLResponse!]!
+
+    "Métadonnées de pagination."
+    pageInfo: PageInfo!
+}
+
+"""
+Représentation complète d'une réservation incluant les informations du lieu et des utilisateurs.
+"""
+type BookingGraphQLResponse {
+    "Identifiant unique de la réservation."
+    id: ID!
+
+    "Date de début de la réservation (incluse)."
+    startDate: Date!
+
+    "Date de fin de la réservation (incluse)."
+    endDate: Date!
+
+    "Statut courant de la réservation."
+    status: BookingStatus!
+
+    "Prix total en euros (nombre de jours × prix horaire du lieu)."
+    totalPrice: Float!
+
+    "Notes optionnelles laissées par le locataire. Null si aucune note."
+    notes: String
+
+    "Timestamp de création de la réservation (ISO-8601 avec heure)."
+    createdAt: DateTime!
+
+    "Informations sur le lieu réservé, incluant les données du propriétaire."
+    place: BookingPlaceInfo!
+
+    "Informations sur l'utilisateur ayant effectué la réservation."
+    booker: OwnerInfo!
+}
+
+"""
+Informations sur le lieu dans le contexte d'une réservation.
+"""
+type BookingPlaceInfo {
+    "Identifiant unique du lieu."
+    id: ID!
+
+    "Nom du lieu."
+    name: String!
+
+    "Adresse postale complète du lieu."
+    address: String!
+
+    "Type du lieu (voir enum PlaceType)."
+    type: String!
+
+    "Statut de validation du lieu (voir enum PlaceStatus)."
+    status: String!
+
+    "Prix de location à l'heure en euros."
+    pricePerHour: Float!
+
+    "Informations sur le propriétaire du lieu."
+    owner: OwnerInfo!
+}
+
+"""
+Statut d'une réservation dans Roomify.
+"""
+enum BookingStatus {
+    "En attente de confirmation par le propriétaire."
+    PENDING
+
+    "Confirmée par le propriétaire ou un administrateur."
+    CONFIRMED
+
+    "Annulée par le locataire ou un administrateur."
+    CANCELLED
+
+    "Terminée (date de fin dépassée)."
+    COMPLETED
+}
