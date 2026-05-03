@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.roomify.domain.models.RoleEnum;
 import com.roomify.infrastucture.models.user.Role;
@@ -17,6 +17,7 @@ import com.roomify.infrastucture.repository.UserRepository;
 import static com.roomify.integration.utils.UserUtils.createCustomUserDetails;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -324,6 +325,342 @@ class UserControllerIT extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isNotFound());
+    }
+
+    // ✅ NOMINAL — updateUserRole
+
+    @Test
+    @Sql(statements = {
+            "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL WHERE id = 99999999998",
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_superAdmin_addsOwnerToUser_returns200() throws Exception {
+        // GIVEN
+        var superAdmin = createCustomUserDetails(
+                99999999996L, "test.super.admin@gmail.com", "Test", "SuperAdmin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.SUPER_ADMIN).build())
+        );
+        var request = Map.of("role", "OWNER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(superAdmin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(99999999998L))
+                .andExpect(jsonPath("$.roles", hasItem("OWNER")))
+                .andExpect(jsonPath("$.roles", hasItem("USER")));
+    }
+
+    @Test
+    @Sql(statements = {
+            "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL WHERE id = 99999999998",
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_superAdmin_removesUserRole_returns200() throws Exception {
+        // GIVEN
+        var superAdmin = createCustomUserDetails(
+                99999999996L, "test.super.admin@gmail.com", "Test", "SuperAdmin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.SUPER_ADMIN).build())
+        );
+        var request = Map.of("role", "USER", "action", "REMOVE");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(superAdmin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(99999999998L))
+                .andExpect(jsonPath("$.roles").isArray())
+                .andExpect(jsonPath("$.roles", not(hasItem("USER"))));
+    }
+
+    @Test
+    @Sql(statements = {
+            "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL WHERE id = 99999999998",
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_admin_addsOwnerToUser_returns200() throws Exception {
+        // GIVEN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "OWNER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.roles", hasItem("OWNER")));
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999997",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999997, id FROM roomify.roles WHERE name = 'OWNER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_admin_removesOwnerFromOwner_returns200() throws Exception {
+        // GIVEN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "OWNER", "action", "REMOVE");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999997/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(99999999997L));
+    }
+
+    // ❌ ERREURS DE VALIDATION — updateUserRole
+
+    @Test
+    void patchUserRole_missingRoleField_returns400() throws Exception {
+        // GIVEN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void patchUserRole_missingActionField_returns400() throws Exception {
+        // GIVEN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "USER");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void patchUserRole_invalidRoleValue_returns400() throws Exception {
+        // GIVEN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "UNKNOWN_ROLE", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    // ❌ ERREURS MÉTIER — updateUserRole
+
+    @Test
+    @Sql(statements = {
+            "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL WHERE id = 99999999998",
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_addRoleAlreadyAssigned_returns409() throws Exception {
+        // GIVEN — user already has USER role
+        var superAdmin = createCustomUserDetails(
+                99999999996L, "test.super.admin@gmail.com", "Test", "SuperAdmin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.SUPER_ADMIN).build())
+        );
+        var request = Map.of("role", "USER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(superAdmin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @Sql(statements = {
+            "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL WHERE id = 99999999998",
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_removeRoleNotAssigned_returns400() throws Exception {
+        // GIVEN — user does not have OWNER role
+        var superAdmin = createCustomUserDetails(
+                99999999996L, "test.super.admin@gmail.com", "Test", "SuperAdmin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.SUPER_ADMIN).build())
+        );
+        var request = Map.of("role", "OWNER", "action", "REMOVE");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(superAdmin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void patchUserRole_userNotFound_returns404() throws Exception {
+        // GIVEN
+        var superAdmin = createCustomUserDetails(
+                99999999996L, "test.super.admin@gmail.com", "Test", "SuperAdmin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.SUPER_ADMIN).build())
+        );
+        var request = Map.of("role", "OWNER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/5151515/role")
+                        .with(user(superAdmin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void patchUserRole_admin_targetsAdmin_returns403() throws Exception {
+        // GIVEN — cible 99999999999 est ADMIN
+        var admin = createCustomUserDetails(
+                1L, "another.admin@gmail.com", "Another", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "USER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999999/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void patchUserRole_admin_targetsSuperAdmin_returns403() throws Exception {
+        // GIVEN — cible 99999999996 est SUPER_ADMIN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "USER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999996/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Sql(statements = {
+            "UPDATE roomify.users SET deleted_at = NULL, deleted_by = NULL WHERE id = 99999999998",
+            "DELETE FROM roomify.user_roles WHERE user_id = 99999999998",
+            "INSERT INTO roomify.user_roles (user_id, role_id) SELECT 99999999998, id FROM roomify.roles WHERE name = 'USER'"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patchUserRole_admin_assignsAdminRole_returns403() throws Exception {
+        // GIVEN — ADMIN tente d'attribuer le rôle ADMIN
+        var admin = createCustomUserDetails(
+                99999999999L, "test.admin@gmail.com", "Test", "Admin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.ADMIN).build())
+        );
+        var request = Map.of("role", "ADMIN", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void patchUserRole_superAdmin_removesOwnSuperAdminRole_returns403() throws Exception {
+        // GIVEN — SUPER_ADMIN tente de retirer son propre rôle SUPER_ADMIN
+        var superAdmin = createCustomUserDetails(
+                99999999996L, "test.super.admin@gmail.com", "Test", "SuperAdmin",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.SUPER_ADMIN).build())
+        );
+        var request = Map.of("role", "SUPER_ADMIN", "action", "REMOVE");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999996/role")
+                        .with(user(superAdmin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void patchUserRole_userRole_forbidden_returns403() throws Exception {
+        // GIVEN
+        var userWithUserRole = createCustomUserDetails(
+                99999999998L, "test.user@gmail.com", "Test", "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+        var request = Map.of("role", "OWNER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(userWithUserRole))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void patchUserRole_ownerRole_forbidden_returns403() throws Exception {
+        // GIVEN
+        var owner = createCustomUserDetails(
+                99999999997L, "test.owner@gmail.com", "Test", "Owner",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.OWNER).build())
+        );
+        var request = Map.of("role", "USER", "action", "ADD");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/99999999998/role")
+                        .with(user(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
 }

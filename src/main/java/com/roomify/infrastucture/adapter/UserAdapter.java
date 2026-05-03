@@ -42,6 +42,12 @@ public class UserAdapter implements UserSpi {
     }
 
     @Override
+    public void removeRoleFromUser(@NonNull Long userId, @NonNull Long roleId) {
+        log.debug("Removing role {} from user {}", roleId, userId);
+        userRepository.removeRoleFromUser(userId, roleId);
+    }
+
+    @Override
     public @NonNull Page<User> searchUsers(@NonNull UserSearchFilter filter) {
         log.debug("Searching users page={}, size={}", filter.getPage(), filter.getPageSize());
 
