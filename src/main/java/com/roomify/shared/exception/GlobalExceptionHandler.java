@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
@@ -89,6 +90,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ApiErrorResponse> handleBindException(BindException ex, HttpServletRequest request) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(new ApiErrorResponse(
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
+                        request.getRequestURI(),
+                        BAD_REQUEST.value(),
+                        LocalDateTime.now(),
+                        includeStackTrace ? getStackTraceAsString(ex) : null)
+                );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         return ResponseEntity.status(BAD_REQUEST)
                 .body(new ApiErrorResponse(
                         includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,

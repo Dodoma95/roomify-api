@@ -14,6 +14,7 @@ import com.roomify.domain.spi.PlaceSpi;
 import com.roomify.infrastucture.models.place.Place;
 import com.roomify.infrastucture.models.user.User;
 import com.roomify.infrastucture.repository.PlaceRepository;
+import com.roomify.infrastucture.repository.specification.PlaceSpecifications;
 
 import lombok.extern.slf4j.Slf4j;
 

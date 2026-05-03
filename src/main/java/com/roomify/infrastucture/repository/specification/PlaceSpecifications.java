@@ -1,4 +1,4 @@
-package com.roomify.infrastucture.adapter;
+package com.roomify.infrastucture.repository.specification;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,45 +15,45 @@ import com.roomify.infrastucture.models.place.PlaceUnavailability;
 
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import lombok.experimental.UtilityClass;
 
-class PlaceSpecifications {
+@UtilityClass
+public class PlaceSpecifications {
 
-    private PlaceSpecifications() {}
-
-    static Specification<Place> hasTypes(List<PlaceTypeEnum> types) {
+    public static Specification<Place> hasTypes(List<PlaceTypeEnum> types) {
         return (root, query, cb) -> root.get("type").in(types);
     }
 
-    static Specification<Place> hasStatuses(List<PlaceStatusEnum> statuses) {
+    public static Specification<Place> hasStatuses(List<PlaceStatusEnum> statuses) {
         return (root, query, cb) -> root.get("status").in(statuses);
     }
 
-    static Specification<Place> nameContains(String name) {
+    public static Specification<Place> nameContains(String name) {
         return (root, query, cb) ->
                 cb.like(cb.lower(root.get("name")), "%" + name.strip().toLowerCase() + "%");
     }
 
-    static Specification<Place> hasOwner(Long ownerId) {
+    public static Specification<Place> hasOwner(Long ownerId) {
         return (root, query, cb) ->
                 cb.equal(root.get("owner").get("id"), ownerId);
     }
 
-    static Specification<Place> capacityAtLeast(int min) {
+    public static Specification<Place> capacityAtLeast(int min) {
         return (root, query, cb) ->
                 cb.greaterThanOrEqualTo(root.get("capacity"), min);
     }
 
-    static Specification<Place> capacityAtMost(int max) {
+    public static Specification<Place> capacityAtMost(int max) {
         return (root, query, cb) ->
                 cb.lessThanOrEqualTo(root.get("capacity"), max);
     }
 
-    static Specification<Place> priceAtLeast(BigDecimal min) {
+    public static Specification<Place> priceAtLeast(BigDecimal min) {
         return (root, query, cb) ->
                 cb.greaterThanOrEqualTo(root.get("pricePerHour"), min);
     }
 
-    static Specification<Place> priceAtMost(BigDecimal max) {
+    public static Specification<Place> priceAtMost(BigDecimal max) {
         return (root, query, cb) ->
                 cb.lessThanOrEqualTo(root.get("pricePerHour"), max);
     }
@@ -63,7 +63,7 @@ class PlaceSpecifications {
      * indisponibilité déclarée qui chevauche la période [from, to].
      * La condition de chevauchement est : existing.start <= to AND existing.end >= from.
      */
-    static Specification<Place> isAvailableBetween(LocalDate from, LocalDate to) {
+    public static Specification<Place> isAvailableBetween(LocalDate from, LocalDate to) {
         return (root, query, cb) -> {
             Subquery<Long> bookingSub = query.subquery(Long.class);
             Root<Booking> bRoot = bookingSub.from(Booking.class);

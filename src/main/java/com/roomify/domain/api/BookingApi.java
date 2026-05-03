@@ -7,7 +7,10 @@ import org.jspecify.annotations.Nullable;
 
 import com.roomify.domain.models.BookingStatusEnum;
 import com.roomify.infrastucture.models.user.User;
+import com.roomify.presentation.models.in.BookingFilterInput;
 import com.roomify.presentation.models.in.BookingRequest;
+import com.roomify.presentation.models.in.PageInfoInput;
+import com.roomify.presentation.models.out.BookingPage;
 import com.roomify.presentation.models.out.BookingResponse;
 import com.roomify.shared.exception.booking.BookingAlreadyConfirmedException;
 import com.roomify.shared.exception.booking.BookingInvalidDatesException;
@@ -35,4 +38,6 @@ public interface BookingApi {
 
     List<BookingResponse> getBookingsByPlace(@NonNull Long placeId, @NonNull User currentUser)
             throws PlaceNotFoundException, UserActionForbiddenException;
+
+    @NonNull BookingPage searchBookings(@Nullable BookingFilterInput filter, @NonNull PageInfoInput pagination);
 }

@@ -21,9 +21,9 @@ import com.roomify.domain.service.place.mapper.PlaceMapper;
 import com.roomify.domain.spi.PlaceSpi;
 import com.roomify.domain.spi.PlaceUnavailabilitySpi;
 import com.roomify.domain.spi.RoleSpi;
+import com.roomify.domain.spi.UserSpi;
 import com.roomify.infrastucture.models.place.Place;
 import com.roomify.infrastucture.models.place.PlaceUnavailability;
-import com.roomify.infrastucture.models.user.Role;
 import com.roomify.infrastucture.models.user.User;
 import com.roomify.presentation.models.in.PageInfoInput;
 import com.roomify.presentation.models.in.PlaceFilterInput;
@@ -37,6 +37,7 @@ import com.roomify.shared.exception.place.CapacityIncoherenteException;
 import com.roomify.shared.exception.place.PlaceDescriptionTooShortException;
 import com.roomify.shared.exception.place.PlaceDuplicationException;
 import com.roomify.shared.exception.place.PlaceNotFoundException;
+import com.roomify.shared.exception.place.PlaceStatusInvalidException;
 import com.roomify.shared.exception.user.UserActionForbiddenException;
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -53,13 +54,15 @@ public class PlaceService implements PlaceApi {
     private final PlaceSpi placeSpi;
     private final PlaceUnavailabilitySpi placeUnavailabilitySpi;
     private final RoleSpi roleSpi;
+    private final UserSpi userSpi;
     private final PlaceMapper placeMapper;
 
     public PlaceService(PlaceSpi placeSpi, PlaceUnavailabilitySpi placeUnavailabilitySpi,
-            RoleSpi roleSpi, PlaceMapper placeMapper) {
+            RoleSpi roleSpi, UserSpi userSpi, PlaceMapper placeMapper) {
         this.placeSpi = placeSpi;
         this.placeUnavailabilitySpi = placeUnavailabilitySpi;
         this.roleSpi = roleSpi;
+        this.userSpi = userSpi;
         this.placeMapper = placeMapper;
     }
 
@@ -139,6 +142,32 @@ public class PlaceService implements PlaceApi {
         Place place = getPlace(id);
         controlOwnership(place, currentUser);
         placeSpi.deletePlace(id);
+    }
+
+    @Transactional
+    @Override
+    public PlaceResponse approve(@NonNull Long id) throws PlaceNotFoundException, PlaceStatusInvalidException {
+        Place place = getPlace(id);
+        if (!PlaceStatusEnum.PENDING.equals(place.getStatus())) {
+            throw PlaceStatusInvalidException.builder()
+                    .message("Only PENDING places can be approved. Current status: %s".formatted(place.getStatus()))
+                    .build();
+        }
+        place.setStatus(PlaceStatusEnum.APPROVED);
+        return placeMapper.toResponse(placeSpi.updatePlace(place));
+    }
+
+    @Transactional
+    @Override
+    public PlaceResponse reject(@NonNull Long id) throws PlaceNotFoundException, PlaceStatusInvalidException {
+        Place place = getPlace(id);
+        if (PlaceStatusEnum.REJECTED.equals(place.getStatus())) {
+            throw PlaceStatusInvalidException.builder()
+                    .message("Place is already REJECTED.")
+                    .build();
+        }
+        place.setStatus(PlaceStatusEnum.REJECTED);
+        return placeMapper.toResponse(placeSpi.updatePlace(place));
     }
 
     @Transactional(readOnly = true)
@@ -278,8 +307,9 @@ public class PlaceService implements PlaceApi {
         builder.pricePerHour(request.pricePerHour());
 
         if (!currentUser.getRolesEnum().contains(RoleEnum.OWNER)) {
-            Optional<Role> byName = roleSpi.findByName(RoleEnum.OWNER);
-            byName.ifPresent(currentUser.getRoles()::add);
+            roleSpi.findByName(RoleEnum.OWNER).ifPresent(ownerRole ->
+                userSpi.addRoleToUser(currentUser.getId(), ownerRole.getId())
+            );
         }
         builder.owner(currentUser);
         return builder.build();

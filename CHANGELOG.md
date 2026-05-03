@@ -6,6 +6,15 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 ## [unreleased]
 
+## [1.4.0]
+
+- Fix de l'ajout du rôle OWNER à un utilisateur lorsqu'il crée une Place
+- Ajout d'un endpoint PATCH /places/{id}/approve pour approuver une place
+- Ajout d'un endpoint PATCH /places/{id}/reject pour refuser une place
+- Ajout d'un endpoint graphql "users" pour lister tous les utilisateurs avec filtres
+- Ajout d'un endpoint graphql "bookings" pour lister tous les bookings avec filtres
+- Ajout d'un endpoint PATCH /users/{id}/role pour changer le rôle d'un utilisateur
+
 ## [1.3.0]
 
 - Ajout query GraphQL "place" pour retourner les informations d'une place à partir de son id
@@ -17,7 +26,7 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 - Amélioration des events envoie de mail et templates
 - Amélioration de la documentation
 - Ajout d'un filtre sur les dates recherchées query graphql "places"
-- Ajout nouvelle query "availableSlots" pour retourner les disponibilités d'une place sur un mois donné
+- Ajout d'une nouvelle query "availableSlots" pour retourner les disponibilités d'une place sur un mois donné
 
 ## [1.1.0]
 
@@ -31,7 +40,9 @@ Toutes les modifications notables apportées à ce projet seront documentées da
 
 - Ajout endpoints DELETE user
 
-[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.3.0...develop
+[Unreleased]: https://github.com/Dodoma95/roomify-api/compare/1.4.0...develop
+
+[1.4.0]: https://github.com/Dodoma95/roomify-api/compare/1.3.0...1.4.0
 
 [1.3.0]: https://github.com/Dodoma95/roomify-api/compare/1.2.0...1.3.0
 

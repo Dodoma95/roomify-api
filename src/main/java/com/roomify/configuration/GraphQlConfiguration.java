@@ -1,5 +1,6 @@
 package com.roomify.configuration;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
@@ -24,7 +25,59 @@ public class GraphQlConfiguration {
 
     @Bean
     public RuntimeWiringConfigurer runtimeWiringConfigurer() {
-        return wiringBuilder -> wiringBuilder.scalar(buildDateScalar());
+        return wiringBuilder -> wiringBuilder
+                .scalar(buildDateScalar())
+                .scalar(buildDateTimeScalar());
+    }
+
+    private static GraphQLScalarType buildDateTimeScalar() {
+        return GraphQLScalarType.newScalar()
+                .name("DateTime")
+                .description("Timestamp ISO-8601 avec heure (ex. : 2025-01-15T10:30:00Z), mappé sur java.time.Instant")
+                .coercing(new Coercing<Instant, String>() {
+
+                    @Override
+                    public String serialize(@NonNull Object result, @NonNull GraphQLContext ctx, @NonNull Locale locale)
+                            throws CoercingSerializeException {
+                        if (result instanceof Instant i)
+                            return i.toString();
+                        throw new CoercingSerializeException("Attendu Instant, reçu : " + result.getClass().getSimpleName());
+                    }
+
+                    @Override
+                    public Instant parseValue(@NonNull Object input, @NonNull GraphQLContext ctx, @NonNull Locale locale)
+                            throws CoercingParseValueException {
+                        if (input instanceof String s) {
+                            try {
+                                return Instant.parse(s);
+                            } catch (DateTimeParseException e) {
+                                throw new CoercingParseValueException("DateTime invalide (attendu ISO-8601) : " + input);
+                            }
+                        }
+                        throw new CoercingParseValueException("Attendu String, reçu : " + input.getClass().getSimpleName());
+                    }
+
+                    @Override
+                    public Instant parseLiteral(@NonNull Value<?> input, @NonNull CoercedVariables vars, @NonNull GraphQLContext ctx,
+                            @NonNull Locale locale) throws CoercingParseLiteralException {
+                        if (input instanceof StringValue sv) {
+                            try {
+                                return Instant.parse(sv.getValue());
+                            } catch (DateTimeParseException e) {
+                                throw new CoercingParseLiteralException("DateTime invalide (attendu ISO-8601) : " + sv.getValue());
+                            }
+                        }
+                        throw new CoercingParseLiteralException("Attendu StringValue");
+                    }
+
+                    @Override
+                    public @NonNull Value<?> valueToLiteral(@NonNull Object input, @NonNull GraphQLContext ctx, @NonNull Locale locale) {
+                        if (input instanceof Instant i)
+                            return StringValue.of(i.toString());
+                        throw new CoercingSerializeException("Attendu Instant");
+                    }
+                })
+                .build();
     }
 
     private static GraphQLScalarType buildDateScalar() {
@@ -68,7 +121,7 @@ public class GraphQlConfiguration {
                     }
 
                     @Override
-                    public Value<?> valueToLiteral(@NonNull Object input, @NonNull GraphQLContext ctx, @NonNull Locale locale) {
+                    public @NonNull Value<?> valueToLiteral(@NonNull Object input, @NonNull GraphQLContext ctx, @NonNull Locale locale) {
                         if (input instanceof LocalDate ld)
                             return StringValue.of(ld.toString());
                         throw new CoercingSerializeException("Attendu LocalDate");
