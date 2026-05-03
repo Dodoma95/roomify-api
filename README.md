@@ -131,12 +131,15 @@ Full interactive documentation: [Swagger UI](https://roomify-api-1ik6.onrender.c
 
 ### Places — requires JWT
 
-| Method   | Path                  | Roles                                | Description    |
-|----------|-----------------------|--------------------------------------|----------------|
-| `POST`   | `/api/v1/places`      | OWNER, ADMIN, SUPER_ADMIN            | Create a space |
-| `GET`    | `/api/v1/places`      | All authenticated                    | List spaces    |
-| `PATCH`  | `/api/v1/places/{id}` | Owner of space · ADMIN · SUPER_ADMIN | Partial update |
-| `DELETE` | `/api/v1/places/{id}` | Owner of space · ADMIN · SUPER_ADMIN | Delete a space |
+> Listing and searching spaces is done via the [GraphQL `places` query](#query----places).
+
+| Method   | Path                          | Roles                     | Description                        |
+|----------|-------------------------------|---------------------------|------------------------------------|
+| `POST`   | `/api/v1/places`              | USER, ADMIN, SUPER_ADMIN  | Create a space (status: PENDING)   |
+| `PATCH`  | `/api/v1/places/{id}`         | OWNER, ADMIN, SUPER_ADMIN | Partial update (resets to PENDING) |
+| `PATCH`  | `/api/v1/places/{id}/approve` | ADMIN, SUPER_ADMIN        | Approve a PENDING place            |
+| `PATCH`  | `/api/v1/places/{id}/reject`  | ADMIN, SUPER_ADMIN        | Reject a PENDING or APPROVED place |
+| `DELETE` | `/api/v1/places/{id}`         | OWNER, ADMIN, SUPER_ADMIN | Delete a space                     |
 
 ### Bookings — requires JWT
 
@@ -173,9 +176,15 @@ Unavailability entries are of two kinds:
 
 ### Users — requires JWT
 
-| Method | Path            | Roles              | Description    |
-|--------|-----------------|--------------------|----------------|
-| `GET`  | `/api/v1/users` | ADMIN, SUPER_ADMIN | List all users |
+> Searching and listing users (admin view) is done via the [GraphQL `users` query](#query----users).
+
+| Method   | Path                      | Roles              | Description                        |
+|----------|---------------------------|--------------------|------------------------------------|
+| `GET`    | `/api/v1/users/me`        | All authenticated  | Get current authenticated user     |
+| `PATCH`  | `/api/v1/users/me`        | All authenticated  | Partially update current user      |
+| `DELETE` | `/api/v1/users/me`        | All authenticated  | Soft-delete current user           |
+| `DELETE` | `/api/v1/users/{id}`      | ADMIN, SUPER_ADMIN | Soft-delete a user by id           |
+| `PATCH`  | `/api/v1/users/{id}/role` | ADMIN, SUPER_ADMIN | Add or remove a role from a user   |
 
 ---
 
@@ -183,7 +192,39 @@ Unavailability entries are of two kinds:
 
 Interactive schema explorer: [GraphiQL](https://roomify-api-1ik6.onrender.com/graphiql) · schema visualizer: [Voyager](https://roomify-api-1ik6.onrender.com/voyager)
 
-A custom `Date` scalar (`YYYY-MM-DD`) is registered server-side and maps to `java.time.LocalDate`.
+Two custom scalars are registered server-side:
+
+| Scalar     | Format            | Java type           |
+|------------|-------------------|---------------------|
+| `Date`     | `YYYY-MM-DD`      | `java.time.LocalDate` |
+| `DateTime` | ISO-8601 with time (e.g. `2025-01-15T10:30:00Z`) | `java.time.Instant` |
+
+### Query — `place`
+
+Returns a single space by its identifier.
+
+```graphql
+query {
+  place(id: "42") {
+    id
+    name
+    description
+    type
+    address
+    capacity
+    pricePerHour
+    status
+    owner {
+      firstName
+      lastName
+      email
+    }
+    isAvailableBetween(from: "2030-06-01", to: "2030-06-10")
+  }
+}
+```
+
+**Authentication required** — Bearer JWT with any role.
 
 ### Query — `places`
 
@@ -256,6 +297,132 @@ query {
 Adjacent or overlapping unavailability periods are merged before computing the complement within the month. A fully free month returns a single slot covering the entire month.
 
 **Authentication required** — Bearer JWT with any role.
+
+### Query — `users`
+
+Search and filter users with pagination. All fields are optional and combined with logical AND. String filters are case-insensitive and partial.
+
+```graphql
+query {
+  users(
+    filter: {
+      firstNameContains: "a"
+      role: OWNER
+      emailVerified: true
+      deleted: false
+    }
+    pagination: { page: 0, pageSize: 10 }
+  ) {
+    results {
+      id
+      email
+      firstName
+      lastName
+      roles
+      enabled
+      emailVerified
+      deletedAt
+      deletedBy
+    }
+    pageInfo {
+      page
+      pageSize
+      totalElements
+      totalPages
+      hasNext
+      hasPrevious
+    }
+  }
+}
+```
+
+**Filter fields:**
+
+| Field               | Description                                                        |
+|---------------------|--------------------------------------------------------------------|
+| `firstNameContains` | Partial match on first name (case-insensitive)                     |
+| `lastNameContains`  | Partial match on last name (case-insensitive)                      |
+| `emailContains`     | Partial match on email (case-insensitive)                          |
+| `role`              | Exact role match (`USER`, `OWNER`, `ADMIN`, `SUPER_ADMIN`)         |
+| `deleted`           | `true` = soft-deleted only · `false` = active only · omitted = all |
+| `enabled`           | Filter by account enabled status                                   |
+| `emailVerified`     | Filter by email verification status                                |
+
+**Authentication required** — Bearer JWT with role `ADMIN` or `SUPER_ADMIN`. Max page size: **100**.
+
+### Query — `bookings`
+
+Search and filter bookings with pagination. All fields are optional and combined with logical AND.
+
+```graphql
+query {
+  bookings(
+    filter: {
+      statuses: [CONFIRMED]
+      placeId: "42"
+      startDateFrom: "2025-06-01"
+      startDateTo: "2025-06-30"
+      totalPriceMin: 50.0
+      createdAtFrom: "2025-01-01T00:00:00Z"
+      createdAtTo: "2025-12-31T23:59:59Z"
+    }
+    pagination: { page: 0, pageSize: 10 }
+  ) {
+    results {
+      id
+      status
+      totalPrice
+      startDate
+      endDate
+      notes
+      createdAt
+      place {
+        id
+        name
+        address
+        type
+        pricePerHour
+        owner { firstName lastName email }
+      }
+      booker { id firstName lastName email }
+    }
+    pageInfo {
+      page
+      pageSize
+      totalElements
+      totalPages
+      hasNext
+      hasPrevious
+    }
+  }
+}
+```
+
+**Filter fields:**
+
+| Field               | Type              | Description                                      |
+|---------------------|-------------------|--------------------------------------------------|
+| `statuses`          | `[BookingStatus]` | Filter by one or more statuses                   |
+| `startDateFrom`     | `Date`            | Booking start date ≥ this value                  |
+| `startDateTo`       | `Date`            | Booking start date ≤ this value                  |
+| `endDateFrom`       | `Date`            | Booking end date ≥ this value                    |
+| `endDateTo`         | `Date`            | Booking end date ≤ this value                    |
+| `totalPriceMin`     | `Float`           | Total price minimum (inclusive, €)               |
+| `totalPriceMax`     | `Float`           | Total price maximum (inclusive, €)               |
+| `createdAtFrom`     | `DateTime`        | Creation timestamp ≥ this value (ISO-8601)       |
+| `createdAtTo`       | `DateTime`        | Creation timestamp ≤ this value (ISO-8601)       |
+| `notesContains`     | `String`          | Partial match on notes (case-insensitive)        |
+| `placeId`           | `ID`              | Exact place identifier                           |
+| `placeNameContains` | `String`          | Partial match on place name (case-insensitive)   |
+| `placeTypes`        | `[PlaceType]`     | Filter by place types                            |
+| `placeStatuses`     | `[PlaceStatus]`   | Filter by place validation statuses              |
+| `userId`            | `ID`              | Exact booker identifier                          |
+| `userEmailContains` | `String`          | Partial match on booker email (case-insensitive) |
+| `ownerId`           | `ID`              | Exact place owner identifier                     |
+
+**Booking statuses:** `PENDING` · `CONFIRMED` · `CANCELLED` · `COMPLETED`
+
+**Authentication required** — Bearer JWT with role `ADMIN` or `SUPER_ADMIN`. Max page size: **50**.
 
 ### Place types
 
