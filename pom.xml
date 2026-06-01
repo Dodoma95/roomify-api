@@ -20,7 +20,7 @@
         <jwt.api.version>0.13.0</jwt.api.version>
         <jacoco.maven.version>0.8.12</jacoco.maven.version>
         <sonar.maven.version>5.5.0.6356</sonar.maven.version>
-        <maven.phase.test.version>3.5.5</maven.phase.test.version>
+        <maven.phase.test.version>3.5.6</maven.phase.test.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 
         <sonar.coverage.exclusions>
