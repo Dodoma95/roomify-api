@@ -69,6 +69,7 @@ class UserControllerIT extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/v1/users/me").with(user(userCustom)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.email").value("super.admin@gmail.com"))
                 .andExpect(jsonPath("$.roles", hasItem(RoleEnum.SUPER_ADMIN.asAuthority())));
     }

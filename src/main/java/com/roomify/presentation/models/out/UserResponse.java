@@ -12,6 +12,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 )
 public record UserResponse(
         @Schema(
+                description = "User unique identifier",
+                example = "42",
+                requiredMode = Schema.RequiredMode.REQUIRED
+        )
+        @NonNull Long id,
+        @Schema(
                 description = "User email address",
                 example = "john.doe@roomify.com",
                 requiredMode = Schema.RequiredMode.REQUIRED

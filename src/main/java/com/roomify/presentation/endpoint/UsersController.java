@@ -61,6 +61,7 @@ public class UsersController {
         User user = customUser.user();
         return ResponseEntity.ok(
                 new UserResponse(
+                        user.getId(),
                         user.getUsername(),
                         user.getFirstName(),
                         user.getLastName(),
