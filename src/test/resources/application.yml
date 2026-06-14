@@ -6,6 +6,11 @@ api:
   errors:
     include-stacktrace: true
 
+frontend:
+  base-url: http://fake-frontend.url
+  endpoints:
+    verify-path: /verify
+
 spring:
   config:
     activate:
