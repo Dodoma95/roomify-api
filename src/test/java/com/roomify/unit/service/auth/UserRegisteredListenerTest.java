@@ -34,8 +34,8 @@ class UserRegisteredListenerTest {
     @BeforeEach
     void setUp() {
         listener = new UserRegisteredListener(
-                "http://localhost:8080",
-                "/api/v1/auth/verify",
+                "http://localhost:3000",
+                "/verify",
                 emailSender,
                 templateLoader
         );
@@ -73,8 +73,8 @@ class UserRegisteredListenerTest {
         verify(templateLoader).load(eq("templates/email/user-registration.html"), varsCaptor.capture());
         String link = varsCaptor.getValue().get("verificationLink");
         assertThat(link)
-                .contains("http://localhost:8080")
-                .contains("/api/v1/auth/verify")
+                .contains("http://localhost:3000")
+                .contains("/verify")
                 .contains("token=my-secret-token");
     }
 }

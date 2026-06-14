@@ -24,18 +24,18 @@ public class UserRegisteredListener {
 
     private static final String TEMPLATE = "templates/email/user-registration.html";
 
-    private final String baseUrl;
-    private final String basePath;
+    private final String frontendBaseUrl;
+    private final String frontendVerifyPath;
     private final EmailSenderSpi emailSender;
     private final EmailTemplateLoader templateLoader;
 
     public UserRegisteredListener(
-            @Value("${api.base-url}") String baseUrl,
-            @Value("${api.endpoints.verify-user-path}") String basePath,
+            @Value("${frontend.base-url}") String frontendBaseUrl,
+            @Value("${frontend.endpoints.verify-path}") String frontendVerifyPath,
             EmailSenderSpi emailSender,
             EmailTemplateLoader templateLoader) {
-        this.baseUrl = baseUrl;
-        this.basePath = basePath;
+        this.frontendBaseUrl = frontendBaseUrl;
+        this.frontendVerifyPath = frontendVerifyPath;
         this.emailSender = emailSender;
         this.templateLoader = templateLoader;
     }
@@ -45,7 +45,7 @@ public class UserRegisteredListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(UserRegisteredEvent event) {
         log.info("Processing email verification for {}", event.email());
-        String link = build(baseUrl, basePath, fromSingleValue(Map.of("token", event.token())));
+        String link = build(frontendBaseUrl, frontendVerifyPath, fromSingleValue(Map.of("token", event.token())));
         String html = templateLoader.load(TEMPLATE, Map.of(
                 "firstName", event.firstName(),
                 "verificationLink", link
