@@ -52,21 +52,17 @@ public class PlaceUnavailabilityController {
     @ApiResponse(responseCode = "200", description = "List of unavailability periods",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = PlaceUnavailabilityResponse.class)))
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Not the owner of this place", content = @Content)
     @ApiResponse(responseCode = "404", description = "Place not found", content = @Content)
     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     @GetMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<PlaceUnavailabilityResponse>> getPlaceUnavailability(
-            @PathVariable Long placeId,
-            @AuthenticationPrincipal CustomUserDetails currentUser
+            @PathVariable Long placeId
     ) {
         try {
-            return ResponseEntity.ok(placeUnavailabilityApi.getPlaceUnavailability(placeId, currentUser.user()));
+            return ResponseEntity.ok(placeUnavailabilityApi.getPlaceUnavailability(placeId));
         } catch (PlaceNotFoundException e) {
             throw ClientApiException.ofNotFound(e.getMessage(), e);
-        } catch (UserActionForbiddenException e) {
-            throw ClientApiException.ofForbidden(e.getMessage(), e);
         }
     }
 

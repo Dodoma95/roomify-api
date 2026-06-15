@@ -10,6 +10,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.roomify.domain.models.event.BookingCancelledEvent;
 import com.roomify.domain.models.event.BookingConfirmedEvent;
 import com.roomify.domain.models.event.BookingRequestedEvent;
+import org.springframework.beans.factory.annotation.Value;
+
 import com.roomify.domain.spi.EmailSenderSpi;
 import com.roomify.shared.utils.EmailTemplateLoader;
 
@@ -32,13 +34,19 @@ public class BookingEventListener {
     private static final String TOTAL_PRICE = "totalPrice";
     private static final String OWNER_FIRST_NAME = "ownerFirstName";
     private static final String TENANT_FIRST_NAME = "tenantFirstName";
+    private static final String APP_URL = "appUrl";
 
     private final EmailSenderSpi emailSender;
     private final EmailTemplateLoader templateLoader;
+    private final String frontendBaseUrl;
 
-    public BookingEventListener(EmailSenderSpi emailSender, EmailTemplateLoader templateLoader) {
+    public BookingEventListener(
+            EmailSenderSpi emailSender,
+            EmailTemplateLoader templateLoader,
+            @Value("${frontend.base-url}") String frontendBaseUrl) {
         this.emailSender = emailSender;
         this.templateLoader = templateLoader;
+        this.frontendBaseUrl = frontendBaseUrl;
     }
 
     @Async
@@ -53,7 +61,8 @@ public class BookingEventListener {
                 PLACE_ADDRESS, event.placeAddress(),
                 START_DATE, event.startDate().toString(),
                 END_DATE, event.endDate().toString(),
-                TOTAL_PRICE, event.totalPrice().toPlainString()
+                TOTAL_PRICE, event.totalPrice().toPlainString(),
+                APP_URL, frontendBaseUrl
         ));
         emailSender.sendEmail(event.tenantEmail(), "Votre demande de réservation — Roomify", tenantHtml);
 
@@ -62,7 +71,8 @@ public class BookingEventListener {
                 TENANT_FIRST_NAME, event.tenantFirstName(),
                 PLACE_NAME, event.placeName(),
                 START_DATE, event.startDate().toString(),
-                END_DATE, event.endDate().toString()
+                END_DATE, event.endDate().toString(),
+                APP_URL, frontendBaseUrl
         ));
         emailSender.sendEmail(event.ownerEmail(), "Nouvelle demande de réservation — Roomify", ownerHtml);
     }
@@ -78,7 +88,8 @@ public class BookingEventListener {
                 PLACE_ADDRESS, event.placeAddress(),
                 START_DATE, event.startDate().toString(),
                 END_DATE, event.endDate().toString(),
-                TOTAL_PRICE, event.totalPrice().toPlainString()
+                TOTAL_PRICE, event.totalPrice().toPlainString(),
+                APP_URL, frontendBaseUrl
         ));
         emailSender.sendEmail(event.tenantEmail(), "Réservation confirmée — Roomify", html);
     }
@@ -92,7 +103,8 @@ public class BookingEventListener {
                 FIRST_NAME, event.tenantFirstName(),
                 PLACE_NAME, event.placeName(),
                 START_DATE, event.startDate().toString(),
-                END_DATE, event.endDate().toString()
+                END_DATE, event.endDate().toString(),
+                APP_URL, frontendBaseUrl
         ));
         emailSender.sendEmail(event.tenantEmail(), "Réservation annulée — Roomify", html);
     }

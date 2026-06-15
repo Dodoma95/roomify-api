@@ -1,8 +1,8 @@
 api:
   version: "@project.version@"
   base-url: ${API_BASE_URL}
-  endpoints:
-    verify-user-path: /api/v1/auth/verify
+  #endpoints:
+  #  verify-user-path: /api/v1/auth/verify
 
 frontend:
   base-url: ${FRONTEND_BASE_URL}

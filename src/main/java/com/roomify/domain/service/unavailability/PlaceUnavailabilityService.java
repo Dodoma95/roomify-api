@@ -95,10 +95,9 @@ public class PlaceUnavailabilityService implements PlaceUnavailabilityApi {
 
     @Transactional(readOnly = true)
     @Override
-    public List<PlaceUnavailabilityResponse> getPlaceUnavailability(@NonNull Long placeId, @NonNull User currentUser)
-            throws PlaceNotFoundException, UserActionForbiddenException {
-        Place place = getPlace(placeId);
-        controlOwnership(place, currentUser);
+    public List<PlaceUnavailabilityResponse> getPlaceUnavailability(@NonNull Long placeId)
+            throws PlaceNotFoundException {
+        getPlace(placeId);
         return placeUnavailabilityMapper.toResponseList(placeUnavailabilitySpi.findByPlaceId(placeId));
     }
 

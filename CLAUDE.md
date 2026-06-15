@@ -7,7 +7,8 @@ Ce fichier fournit des indications à Claude Code (claude.ai/code) pour travaill
 Toutes les commandes Maven doivent utiliser le fichier de settings personnalisé et le dépôt local dédié :
 
 ```bash
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml \
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml \
+    -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml \
     -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso \
     <commande>
 ```
@@ -16,23 +17,23 @@ mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml \
 
 ```bash
 # Build
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso clean package
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso clean package
 
 # Lancer en local (profil dev)
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso spring-boot:run -Dspring-boot.run.profiles=dev
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso spring-boot:run -Dspring-boot.run.profiles=dev
 
 # Tests unitaires
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso test
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso test
 
 # Tests d'intégration (nécessite Docker pour Testcontainers)
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso verify
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso verify
 
 # Lancer une seule classe ou méthode de test
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso test -Dtest=NomDeLaClasse
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso test -Dtest=NomDeLaClasse#nomDeLaMethode
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso test -Dtest=NomDeLaClasse
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso test -Dtest=NomDeLaClasse#nomDeLaMethode
 
 # Analyse SonarQube
-mvn -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso sonar:sonar -Dsonar.projectKey=<KEY> -Dsonar.organization=<ORG>
+mvn -gs /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -s /opt/homebrew/Cellar/maven/3.9.12-perso/libexec/conf/settings.xml -Dmaven.repo.local=/Users/72337B/workspace/perso/repoperso sonar:sonar -Dsonar.projectKey=<KEY> -Dsonar.organization=<ORG>
 
 # Démarrer les dépendances (PostgreSQL)
 docker compose up -d postgres

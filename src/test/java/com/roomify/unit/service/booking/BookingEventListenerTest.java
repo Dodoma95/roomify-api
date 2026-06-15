@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,8 +35,14 @@ class BookingEventListenerTest {
     @Mock
     private EmailTemplateLoader templateLoader;
 
-    @InjectMocks
     private BookingEventListener listener;
+
+    private static final String FRONTEND_BASE_URL = "https://roomify.fr";
+
+    @BeforeEach
+    void setUp() {
+        listener = new BookingEventListener(emailSender, templateLoader, FRONTEND_BASE_URL);
+    }
 
     private static final LocalDate START = LocalDate.of(2099, 6, 1);
     private static final LocalDate END   = LocalDate.of(2099, 6, 5);
@@ -80,7 +86,8 @@ class BookingEventListenerTest {
                 .containsEntry("placeAddress", "5 rue Lyon")
                 .containsEntry("startDate", "2099-06-01")
                 .containsEntry("endDate", "2099-06-05")
-                .containsEntry("totalPrice", "75");
+                .containsEntry("totalPrice", "75")
+                .containsEntry("appUrl", FRONTEND_BASE_URL);
     }
 
     @Test
@@ -99,7 +106,8 @@ class BookingEventListenerTest {
         assertThat(ownerVars)
                 .containsEntry("ownerFirstName", "Bob")
                 .containsEntry("tenantFirstName", "Alice")
-                .containsEntry("placeName", "Mon Espace");
+                .containsEntry("placeName", "Mon Espace")
+                .containsEntry("appUrl", FRONTEND_BASE_URL);
     }
 
     // ─── handleBookingConfirmed ───────────────────────────────────────────────
@@ -138,7 +146,8 @@ class BookingEventListenerTest {
                 .containsEntry("placeAddress", "1 rue A")
                 .containsEntry("startDate", "2099-06-01")
                 .containsEntry("endDate", "2099-06-05")
-                .containsEntry("totalPrice", "200");
+                .containsEntry("totalPrice", "200")
+                .containsEntry("appUrl", FRONTEND_BASE_URL);
     }
 
     // ─── handleBookingCancelled ───────────────────────────────────────────────
@@ -173,6 +182,7 @@ class BookingEventListenerTest {
                 .containsEntry("firstName", "Bob")
                 .containsEntry("placeName", "Salle B")
                 .containsEntry("startDate", "2099-06-01")
-                .containsEntry("endDate", "2099-06-05");
+                .containsEntry("endDate", "2099-06-05")
+                .containsEntry("appUrl", FRONTEND_BASE_URL);
     }
 }

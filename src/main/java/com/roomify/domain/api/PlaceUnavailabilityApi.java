@@ -22,6 +22,6 @@ public interface PlaceUnavailabilityApi {
     void unblockDates(@NonNull Long placeId, @NonNull Long unavailabilityId, @NonNull User currentUser)
             throws PlaceNotFoundException, PlaceUnavailabilityNotFoundException, UserActionForbiddenException;
 
-    List<PlaceUnavailabilityResponse> getPlaceUnavailability(@NonNull Long placeId, @NonNull User currentUser)
-            throws PlaceNotFoundException, UserActionForbiddenException;
+    List<PlaceUnavailabilityResponse> getPlaceUnavailability(@NonNull Long placeId)
+            throws PlaceNotFoundException;
 }
