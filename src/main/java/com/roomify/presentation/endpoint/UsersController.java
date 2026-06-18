@@ -1,5 +1,6 @@
 package com.roomify.presentation.endpoint;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
@@ -8,9 +9,12 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.roomify.domain.api.UserApi;
 import com.roomify.infrastucture.models.user.CustomUserDetails;
@@ -20,6 +24,8 @@ import com.roomify.presentation.models.in.UpdateUserRoleRequest;
 import com.roomify.presentation.models.out.UserAdminResponse;
 import com.roomify.presentation.models.out.UserResponse;
 import com.roomify.shared.exception.ClientApiException;
+import com.roomify.shared.exception.user.AvatarFormatInvalidException;
+import com.roomify.shared.exception.user.AvatarTooLargeException;
 import com.roomify.shared.exception.user.RoleAlreadyAssignedException;
 import com.roomify.shared.exception.user.RoleNotAssignedException;
 import com.roomify.shared.exception.user.RoleNotFoundException;
@@ -68,7 +74,9 @@ public class UsersController {
                         user.getAuthorities()
                                 .stream()
                                 .map(GrantedAuthority::getAuthority)
-                                .toList()
+                                .toList(),
+                        user.getDescription(),
+                        user.getAvatarUrl()
                 )
         );
     }
@@ -89,6 +97,32 @@ public class UsersController {
     ) {
         try {
             return ResponseEntity.ok(userApi.updateMe(customUser.user(), request));
+        } catch (UserNotFoundException e) {
+            throw ClientApiException.ofNotFound(e.getMessage(), e);
+        }
+    }
+
+    @Operation(
+            summary = "Update profile picture",
+            description = "Upload a profile picture (max 10 MB, any image format). Resized to 256×256 px.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(responseCode = "200", description = "Avatar successfully updated",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class)))
+    @ApiResponse(responseCode = "400", description = "File too large or not a valid image", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "429", description = "Too many requests", content = @Content)
+    @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    @PutMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('USER', 'OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserResponse> updateAvatar(
+            @AuthenticationPrincipal CustomUserDetails customUser,
+            @RequestParam("file") MultipartFile file
+    ) {
+        try {
+            return ResponseEntity.ok(userApi.updateAvatar(customUser.user(), file));
+        } catch (AvatarTooLargeException | AvatarFormatInvalidException e) {
+            throw ClientApiException.ofBadRequest(e.getMessage(), e);
         } catch (UserNotFoundException e) {
             throw ClientApiException.ofNotFound(e.getMessage(), e);
         }

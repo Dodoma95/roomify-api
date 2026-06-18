@@ -73,6 +73,12 @@ public class User implements UserDetails {
     @Column(name = "deleted_by")
     private Long deletedBy;
 
+    @Column(length = 1000)
+    private String description;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",

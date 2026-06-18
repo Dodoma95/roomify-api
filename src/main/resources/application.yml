@@ -1,8 +1,6 @@
 api:
   version: "@project.version@"
   base-url: ${API_BASE_URL}
-  #endpoints:
-  #  verify-user-path: /api/v1/auth/verify
 
 frontend:
   base-url: ${FRONTEND_BASE_URL}
@@ -12,6 +10,10 @@ frontend:
 spring:
   application:
     name: "@project.artifactId@"
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -45,6 +47,13 @@ brevo:
   sender-name: Roomify
   base-url: https://api.brevo.com/v3
   brevo-smtp-path: /smtp/email
+
+storage:
+  endpoint: ${STORAGE_ENDPOINT}
+  access-key: ${STORAGE_ACCESS_KEY}
+  secret-key: ${STORAGE_SECRET_KEY}
+  bucket: ${STORAGE_BUCKET}
+  public-url: ${STORAGE_PUBLIC_URL}
 
 resilience4j:
   retry:

@@ -109,6 +109,12 @@ type UserAdminResponse {
 
     "Identifiant de l'administrateur ayant effectué la suppression. Null si l'utilisateur est actif."
     deletedBy: ID
+
+    "Description libre saisie par l'utilisateur."
+    description: String
+
+    "URL de l'avatar de l'utilisateur. Null si aucun avatar n'a été défini."
+    avatarUrl: String
 }
 
 """

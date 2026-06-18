@@ -682,4 +682,66 @@ class UserControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    // ✅ NOMINAL — description
+
+    @Test
+    @Sql(statements = """
+            UPDATE roomify.users
+            SET first_name = 'Test',
+                last_name  = 'User',
+                email      = 'test.user@gmail.com',
+                description = NULL,
+                deleted_at  = NULL,
+                deleted_by  = NULL
+            WHERE id = 99999999998;
+        """, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void patch_me_withDescription_returns200() throws Exception {
+        // GIVEN
+        var userCustom = createCustomUserDetails(
+                99999999998L,
+                "test.user@gmail.com",
+                "Test",
+                "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+        var request = Map.of("description", "Passionné de voyage et de randonnée.");
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/me")
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Passionné de voyage et de randonnée."));
+
+        // THEN
+        var userInDb = userRepository.findById(99999999998L).orElseThrow();
+        assertThat(userInDb.getDescription()).isEqualTo("Passionné de voyage et de randonnée.");
+    }
+
+    // ❌ ERREURS DE VALIDATION — description
+
+    @Test
+    void patch_me_descriptionTooLong_returns400() throws Exception {
+        // GIVEN
+        var userCustom = createCustomUserDetails(
+                99999999998L,
+                "test.user@gmail.com",
+                "Test",
+                "User",
+                "{bcrypt}Test@12345678941",
+                Set.of(Role.builder().name(RoleEnum.USER).build())
+        );
+        // 1001 caractères
+        var request = Map.of("description", "a".repeat(1001));
+
+        // WHEN + THEN
+        mockMvc.perform(patch("/api/v1/users/me")
+                        .with(user(userCustom))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
 }

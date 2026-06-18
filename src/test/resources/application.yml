@@ -37,6 +37,10 @@ spring:
     schemas: roomify
     locations: classpath:db/migration
     clean-disabled: true
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
 
 brevo:
   api-key: test
@@ -75,3 +79,10 @@ security:
 server:
   port: 8080
   forward-headers-strategy: framework
+
+storage:
+  endpoint: http://localhost:9000
+  access-key: test-key
+  secret-key: test-secret
+  bucket: test-bucket
+  public-url: http://localhost:9000/test-bucket

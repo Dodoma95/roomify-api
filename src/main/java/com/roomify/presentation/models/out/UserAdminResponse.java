@@ -38,5 +38,11 @@ public record UserAdminResponse(
         @Nullable Instant deletedAt,
 
         @Schema(description = "Id of the admin who performed the soft-deletion", example = "null")
-        @Nullable Long deletedBy
+        @Nullable Long deletedBy,
+
+        @Schema(description = "Profile description")
+        @Nullable String description,
+
+        @Schema(description = "Profile picture public URL")
+        @Nullable String avatarUrl
 ) {}

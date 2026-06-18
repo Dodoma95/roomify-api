@@ -182,9 +182,27 @@ Unavailability entries are of two kinds:
 |----------|---------------------------|--------------------|------------------------------------|
 | `GET`    | `/api/v1/users/me`        | All authenticated  | Get current authenticated user     |
 | `PATCH`  | `/api/v1/users/me`        | All authenticated  | Partially update current user      |
+| `PUT`    | `/api/v1/users/me/avatar` | All authenticated  | Upload a profile picture           |
 | `DELETE` | `/api/v1/users/me`        | All authenticated  | Soft-delete current user           |
 | `DELETE` | `/api/v1/users/{id}`      | ADMIN, SUPER_ADMIN | Soft-delete a user by id           |
 | `PATCH`  | `/api/v1/users/{id}/role` | ADMIN, SUPER_ADMIN | Add or remove a role from a user   |
+
+**Avatar upload — `PUT /api/v1/users/me/avatar`**
+
+Accepts a `multipart/form-data` request with a single `file` field.
+
+- Max size: **10 MB**
+- Accepted formats: any raster image (JPEG, PNG, GIF, WEBP…) — SVG is rejected
+- The image is automatically resized and center-cropped to **256×256 px** and stored as JPEG
+- The response includes the updated `avatarUrl` pointing to the R2 public URL
+
+```bash
+curl -X PUT http://localhost:8080/api/v1/users/me/avatar \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@/path/to/photo.png"
+```
+
+Requires the [storage environment variables](#storage-cloudflare-r2) to be set.
 
 ---
 
@@ -489,7 +507,22 @@ export SPRING_DATASOURCE_PASSWORD=roomify
 export JWT_SECRET=<your-256-bit-secret>
 export BREVO_API_KEY=<your-brevo-key>
 export API_BASE_URL=http://localhost:8080
+export FRONTEND_BASE_URL=http://localhost:3000
 ```
+
+#### Storage — Cloudflare R2
+
+Avatar uploads require a Cloudflare R2 bucket (or any S3-compatible storage):
+
+```bash
+export STORAGE_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+export STORAGE_ACCESS_KEY=<r2-access-key-id>
+export STORAGE_SECRET_KEY=<r2-secret-access-key>
+export STORAGE_BUCKET=<bucket-name>
+export STORAGE_PUBLIC_URL=https://<your-public-r2-domain>
+```
+
+`STORAGE_PUBLIC_URL` is the base URL used to build the `avatarUrl` returned in responses (e.g. a custom domain or the R2 public bucket URL). If storage is not configured, the avatar upload endpoint will return 500.
 
 ### 3. Start the application
 

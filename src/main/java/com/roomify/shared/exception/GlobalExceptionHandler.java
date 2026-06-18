@@ -12,6 +12,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.servlet.http.HttpServletRequest;
@@ -102,6 +103,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(new ApiErrorResponse(
+                        includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
+                        request.getRequestURI(),
+                        BAD_REQUEST.value(),
+                        LocalDateTime.now(),
+                        includeStackTrace ? getStackTraceAsString(ex) : null)
+                );
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request) {
         return ResponseEntity.status(BAD_REQUEST)
                 .body(new ApiErrorResponse(
                         includeStackTrace ? ex.getMessage() : MSG_ERROR_PROD,
