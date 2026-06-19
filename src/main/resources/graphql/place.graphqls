@@ -244,23 +244,28 @@ type PlaceResponse {
 }
 
 """
-Informations publiques sur le propriétaire d'un espace.
+Informations publiques sur un utilisateur (propriétaire d'un espace ou réservant).
 
-Exposées uniquement dans le contexte d'une recherche d'espaces. Le mot de passe
-et les informations sensibles ne sont jamais inclus.
+Le mot de passe et les informations sensibles ne sont jamais inclus.
 """
 type OwnerInfo {
-    "Identifiant unique du propriétaire."
+    "Identifiant unique de l'utilisateur."
     id: ID!
 
-    "Prénom du propriétaire."
+    "Prénom de l'utilisateur."
     firstName: String!
 
-    "Nom de famille du propriétaire."
+    "Nom de famille de l'utilisateur."
     lastName: String!
 
-    "Adresse email du propriétaire."
+    "Adresse email de l'utilisateur."
     email: String!
+
+    "Description personnelle. Null si non renseignée."
+    description: String
+
+    "URL de l'avatar. Null si aucun avatar n'a été uploadé."
+    avatarUrl: String
 }
 
 """
