@@ -21,6 +21,8 @@ public interface BookingMapper {
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "user.firstName", target = "userFirstName")
     @Mapping(source = "user.lastName", target = "userLastName")
+    @Mapping(source = "user.description", target = "userDescription")
+    @Mapping(source = "user.avatarUrl", target = "userAvatarUrl")
     BookingResponse toResponse(Booking booking);
 
     List<BookingResponse> toResponseList(List<Booking> bookings);

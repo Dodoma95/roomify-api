@@ -42,6 +42,12 @@ public record BookingResponse(
         @Schema(description = "Total price in euros (days × price per hour)", example = "125.00", requiredMode = Schema.RequiredMode.REQUIRED)
         @NonNull BigDecimal totalPrice,
 
+        @Schema(description = "Description of the user who booked", example = "Product designer based in Paris")
+        @Nullable String userDescription,
+
+        @Schema(description = "Avatar URL of the user who booked", example = "https://cdn.example.com/avatars/jean.jpg")
+        @Nullable String userAvatarUrl,
+
         @Schema(description = "Optional notes from the user", example = "We will need a projector setup")
         @Nullable String notes,
 
