@@ -34,13 +34,13 @@ public class S3StorageAdapter implements StorageSpi {
                 .build();
         s3Client.putObject(request, RequestBody.fromBytes(data));
         log.debug("Uploaded object: key={}", key);
-        return "%s/%s".formatted(props.publicUrl(), key);
+        return "%s/%s/%s".formatted(props.publicUrl(), props.bucket(), key);
     }
 
     @Override
     public void delete(@NonNull String url) {
         try {
-            String key = url.replace(props.publicUrl() + "/", "");
+            String key = url.replace(props.publicUrl() + "/" + props.bucket() + "/", "");
             DeleteObjectRequest request = DeleteObjectRequest.builder()
                     .bucket(props.bucket())
                     .key(key)
